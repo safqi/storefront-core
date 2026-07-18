@@ -1,0 +1,67 @@
+{
+  "name": "@safqi/storefront-core",
+  "version": "1.0.0",
+  "description": "Shared, versioned core for Safqi multi-tenant storefront themes: the data/API client, auth, cart, i18n, theme-token engine, the window.appConfig + API type contract, design-free leaf components, and the boot/build glue. Themes depend on this and own only their presentation.",
+  "license": "proprietary",
+  "type": "module",
+  "keywords": ["safqi", "storefront", "theme", "core", "sdk"],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./vite": {
+      "types": "./dist/vite.d.ts",
+      "import": "./dist/vite.js"
+    },
+    "./capabilities": {
+      "types": "./dist/capabilities.d.ts",
+      "import": "./dist/capabilities.js"
+    },
+    "./global": {
+      "types": "./dist/global.d.ts"
+    }
+  },
+  "files": ["dist", "skills", "docs"],
+  "scripts": {
+    "build": "tsup && cp src/types/global.d.ts dist/global.d.ts",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@iconify/react": "^6.0.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "@tanstack/react-query": "^5.0.0",
+    "@vitejs/plugin-react": "^6.0.0",
+    "axios": "^1.0.0",
+    "laravel-vite-plugin": "^3.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.0.0",
+    "vite": "^8.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@tailwindcss/vite": { "optional": true },
+    "@vitejs/plugin-react": { "optional": true },
+    "laravel-vite-plugin": { "optional": true },
+    "vite": { "optional": true }
+  },
+  "devDependencies": {
+    "@iconify/react": "^6.0.2",
+    "@tailwindcss/vite": "^4.2.2",
+    "@tanstack/react-query": "^5.101.0",
+    "@types/node": "^24.12.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "axios": "^1.15.0",
+    "laravel-vite-plugin": "^3.0.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^7.18.0",
+    "tsup": "^8.3.5",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.4"
+  }
+}
