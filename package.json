@@ -1,10 +1,16 @@
 {
   "name": "@safqi/storefront-core",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Shared, versioned core for Safqi multi-tenant storefront themes: the data/API client, auth, cart, i18n, theme-token engine, the window.appConfig + API type contract, design-free leaf components, and the boot/build glue. Themes depend on this and own only their presentation.",
   "license": "proprietary",
   "type": "module",
-  "keywords": ["safqi", "storefront", "theme", "core", "sdk"],
+  "keywords": [
+    "safqi",
+    "storefront",
+    "theme",
+    "core",
+    "sdk"
+  ],
   "sideEffects": false,
   "exports": {
     ".": {
@@ -24,7 +30,11 @@
     },
     "./base.css": "./dist/base.css"
   },
-  "files": ["dist", "skills", "docs"],
+  "files": [
+    "dist",
+    "skills",
+    "docs"
+  ],
   "scripts": {
     "build": "tsup && cp src/types/global.d.ts dist/global.d.ts && cp src/base.css dist/base.css",
     "dev": "tsup --watch",
@@ -43,10 +53,18 @@
     "vite": "^8.0.0"
   },
   "peerDependenciesMeta": {
-    "@tailwindcss/vite": { "optional": true },
-    "@vitejs/plugin-react": { "optional": true },
-    "laravel-vite-plugin": { "optional": true },
-    "vite": { "optional": true }
+    "@tailwindcss/vite": {
+      "optional": true
+    },
+    "@vitejs/plugin-react": {
+      "optional": true
+    },
+    "laravel-vite-plugin": {
+      "optional": true
+    },
+    "vite": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@iconify/react": "^6.0.2",
