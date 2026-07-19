@@ -90,6 +90,22 @@ export interface StorefrontFitnessPackage {
   price: string;
 }
 
+/** A published customer question + its merchant answer (public product Q&A). */
+export interface StorefrontProductQuestion {
+  id: number;
+  name: string;
+  question: string;
+  answer: string | null;
+  answered_at: string | null;
+  created_at: string | null;
+}
+
+/** Response of `GET /api/v1/products/{slug}/questions`. */
+export interface StorefrontProductQuestions {
+  enabled: boolean;
+  data: StorefrontProductQuestion[];
+}
+
 /** A merchant-defined custom input the buyer fills at purchase. */
 export interface StorefrontPersonalizationField {
   key: string;
@@ -135,6 +151,8 @@ export interface StorefrontProductDetail {
   fitness_from_price: string | null;
   /** Custom input fields the buyer fills at purchase (empty when none). */
   personalization_fields: StorefrontPersonalizationField[];
+  /** Whether customers may ask questions on this product (Q&A form shown). */
+  questions_enabled: boolean;
   /** Key/value specifications (electronics). */
   specifications: StorefrontSpecification[];
   price: string;

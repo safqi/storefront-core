@@ -8,6 +8,7 @@ export interface Customer {
   name: string;
   email: string | null;
   phone: string | null;
+  phone_verified?: boolean;
   type: string;
   /** Preferred storefront language code (e.g. "ar", "en"). */
   locale?: string | null;

@@ -2,6 +2,7 @@ import axios from "axios";
 import type {
   StorefrontProduct,
   StorefrontProductDetail,
+  StorefrontProductQuestions,
 } from "../types/product";
 import type {
   StorefrontBrandFull,
@@ -51,6 +52,7 @@ function clean(params: object): Record<string, string> {
 export const queryKeys = {
   products: (params: ProductQuery = {}) => ["products", clean(params)] as const,
   product: (slug: string) => ["product", slug] as const,
+  productQuestions: (slug: string) => ["product-questions", slug] as const,
   categories: ["categories"] as const,
   brands: ["brands"] as const,
   filters: (params: FilterContext = {}) => ["filters", clean(params)] as const,
@@ -68,6 +70,31 @@ export async function fetchProduct(
 ): Promise<StorefrontProductDetail> {
   const { data } = await axios.get(`products/${encodeURIComponent(slug)}`);
   return data?.data ?? data;
+}
+
+/** Public product Q&A — the answered questions shown on the product page. */
+export async function fetchProductQuestions(
+  slug: string,
+): Promise<StorefrontProductQuestions> {
+  const { data } = await axios.get(
+    `products/${encodeURIComponent(slug)}/questions`,
+  );
+  return {
+    enabled: data?.enabled ?? false,
+    data: data?.data ?? [],
+  };
+}
+
+/** Submit a new question on a product (guest allowed; `name` required for guests). */
+export async function askProductQuestion(
+  slug: string,
+  body: { question: string; name?: string },
+): Promise<{ message: string }> {
+  const { data } = await axios.post(
+    `products/${encodeURIComponent(slug)}/questions`,
+    body,
+  );
+  return data;
 }
 
 export async function fetchCategories(): Promise<StorefrontCategory[]> {

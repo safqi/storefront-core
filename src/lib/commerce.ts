@@ -24,7 +24,37 @@ function unwrap<T>(data: any): T {
   return (data?.data ?? data) as T;
 }
 
-// ─── Auth (passwordless OTP over WhatsApp) ───────────────────────────────────
+// ─── Auth ────────────────────────────────────────────────────────────────────
+
+export interface AuthResult {
+  token: string;
+  user: Customer;
+}
+
+/**
+ * Password sign-up. The storefront collects name + phone + password (phone is
+ * the identity; email is optional). Returns a bearer token + the new customer.
+ */
+export async function register(payload: {
+  name: string;
+  phone: string;
+  password: string;
+  email?: string;
+}): Promise<AuthResult> {
+  const { data } = await axios.post("auth/register", payload);
+  return data;
+}
+
+/** Password sign-in by phone. */
+export async function login(payload: {
+  phone: string;
+  password: string;
+}): Promise<AuthResult> {
+  const { data } = await axios.post("auth/login", payload);
+  return data;
+}
+
+// ─── Passwordless OTP over WhatsApp (kept for the upcoming mobile app) ────────
 
 export interface OtpRequestResult {
   message: string;
@@ -35,11 +65,6 @@ export interface OtpRequestResult {
 export async function requestOtp(phone: string): Promise<OtpRequestResult> {
   const { data } = await axios.post("auth/otp/request", { phone });
   return data;
-}
-
-export interface AuthResult {
-  token: string;
-  user: Customer;
 }
 
 export async function verifyOtp(payload: {
