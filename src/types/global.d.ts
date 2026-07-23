@@ -24,13 +24,27 @@ declare global {
   interface AppHomepageSection {
     id: number;
     type: string;
+    /**
+     * The merchant's own title, already resolved for the active locale by the
+     * server — null when they never set one. Render `title ?? t(title_key)`.
+     */
     title?: string | null;
+    /** i18n key for the theme's default title, e.g. "home.featured". */
+    title_key?: string | null;
     config: Record<string, unknown>;
   }
 
   interface AppBottomBarTab {
     key: string;
-    label: string;
+    /**
+     * The merchant's own label, already resolved for the active locale by the
+     * server — null when they never overrode the theme default. A theme must
+     * render `label ?? t(label_key)`, never `label` alone, or an untranslated
+     * string leaks into every language.
+     */
+    label: string | null;
+    /** i18n key for the theme's default label, e.g. "nav.home". */
+    label_key?: string | null;
     icon: string;
     icon_linear: string;
     icon_active: string;
