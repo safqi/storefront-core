@@ -48,9 +48,19 @@ function clean(params: object): Record<string, string> {
   return out;
 }
 
+/** One page of a cursor-paginated product listing (see `fetchProductsPage`). */
+export interface ProductsPage {
+  data: StorefrontProduct[];
+  /** Opaque keyset token for the next page, or null on the last page. */
+  nextCursor: string | null;
+}
+
 /** Query keys — keep them centralized so invalidation stays consistent. */
 export const queryKeys = {
   products: (params: ProductQuery = {}) => ["products", clean(params)] as const,
+  /** Key for the cursor-paginated (infinite) listing — distinct from the one-shot `products`. */
+  productsInfinite: (params: ProductQuery = {}) =>
+    ["products-infinite", clean(params)] as const,
   product: (slug: string) => ["product", slug] as const,
   productQuestions: (slug: string) => ["product-questions", slug] as const,
   categories: ["categories"] as const,
@@ -63,6 +73,28 @@ export async function fetchProducts(
 ): Promise<StorefrontProduct[]> {
   const { data } = await axios.get("products", { params: clean(params) });
   return data?.data ?? data ?? [];
+}
+
+/**
+ * One cursor-paginated page of the product listing — for infinite scroll.
+ *
+ * The listing endpoint uses keyset (cursor) pagination: pass the previous
+ * page's `nextCursor` to get the next page. Because pages are anchored to row
+ * values (not offsets), products added/removed in admin mid-scroll never make
+ * the list repeat or skip a row. `nextCursor` is null on the last page.
+ * Pair with react-query's `useInfiniteQuery` + `queryKeys.productsInfinite`.
+ */
+export async function fetchProductsPage(
+  params: ProductQuery = {},
+  cursor?: string,
+): Promise<ProductsPage> {
+  const { data } = await axios.get("products", {
+    params: { ...clean(params), ...(cursor ? { cursor } : {}) },
+  });
+  return {
+    data: data?.data ?? data ?? [],
+    nextCursor: data?.meta?.next_cursor ?? null,
+  };
 }
 
 export async function fetchProduct(

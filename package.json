@@ -1,6 +1,6 @@
 {
   "name": "@safqi/storefront-core",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Shared, versioned core for Safqi multi-tenant storefront themes: the data/API client, auth, cart, i18n, theme-token engine, the window.appConfig + API type contract, design-free leaf components, and the boot/build glue. Themes depend on this and own only their presentation.",
   "license": "proprietary",
   "type": "module",
@@ -38,7 +38,9 @@
   "scripts": {
     "build": "tsup && cp src/types/global.d.ts dist/global.d.ts && cp src/base.css dist/base.css",
     "dev": "tsup --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "peerDependencies": {
     "@iconify/react": "^6.0.0",
@@ -81,6 +83,7 @@
     "react-router-dom": "^7.18.0",
     "tsup": "^8.3.5",
     "typescript": "~6.0.2",
-    "vite": "^8.0.4"
+    "vite": "^8.0.4",
+    "vitest": "^4.1.10"
   }
 }
