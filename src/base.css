@@ -378,3 +378,32 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   text-align: start;
 }
 .rich-text th { background: rgb(var(--surface-2)); font-weight: 600; }
+
+/* ---------------------------------------------------------------------------
+   Swipeable rows (see useDragScroll / <SwipeRow>)
+
+   Scrolling stays NATIVE — these rules only cover the two things a utility
+   class can't express: per-child snap alignment, and hiding the scrollbar once
+   drag becomes the affordance. The mouse gesture itself lives in the hook.
+   --------------------------------------------------------------------------- */
+
+/* Snap alignment belongs on the items. Putting it here rather than cloning
+   children means a caller never has to remember `snap-start` on every card,
+   and any child can still opt out with its own `scroll-snap-align`. */
+.sf-swipe-row > * {
+  scroll-snap-align: start;
+}
+
+/* NOTE: the grab cursor is deliberately NOT set here. It is an affordance, so
+   it must not appear on a row whose content already fits — and CSS cannot ask
+   whether an element overflows. useDragScroll measures that (and re-measures on
+   resize) and sets the cursor itself. */
+
+/* Hide the horizontal scrollbar without losing scrollability. */
+.sf-no-scrollbar {
+  scrollbar-width: none;          /* Firefox */
+  -ms-overflow-style: none;       /* legacy Edge */
+}
+.sf-no-scrollbar::-webkit-scrollbar {
+  display: none;                  /* WebKit/Blink */
+}

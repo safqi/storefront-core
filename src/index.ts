@@ -43,6 +43,17 @@ export { applyThemeSettings } from "./lib/themeSettings";
 export { useTheme } from "./lib/useTheme";
 export type { Theme } from "./lib/useTheme";
 export { useHideOnScroll } from "./lib/useHideOnScroll";
+export {
+  useDragScroll,
+  computeVelocity,
+  isFlick,
+  isCoastFinished,
+  isDrag,
+  VELOCITY_WINDOW_MS,
+  MIN_FLICK_VELOCITY,
+  MIN_COAST_VELOCITY,
+} from "./lib/useDragScroll";
+export type { DragScrollOptions, DragSample } from "./lib/useDragScroll";
 
 // --- icon registry ---
 export { ICONS, resolveIcon } from "./lib/iconMap";
@@ -54,6 +65,8 @@ export { SolarIcon } from "./components/SolarIcon";
 export { ErrorState, EmptyState } from "./components/States";
 export type { ErrorStateProps, EmptyStateProps } from "./components/States";
 export { default as Swiper } from "./components/Swiper";
+export { default as SwipeRow } from "./components/SwipeRow";
+export type { SwipeRowProps } from "./components/SwipeRow";
 export { default as RequireAuth } from "./components/RequireAuth";
 
 // --- types (API + storefront contract) ---
