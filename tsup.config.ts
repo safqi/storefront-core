@@ -21,6 +21,7 @@ export default defineConfig({
     "@tanstack/react-query",
     "axios",
     "@iconify/react",
+    "embla-carousel-react",
     "vite",
     "@vitejs/plugin-react",
     "@tailwindcss/vite",

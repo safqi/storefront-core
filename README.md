@@ -12,7 +12,7 @@ to all themes with a single version bump instead of an N-repo copy-merge.
 - **i18n + formatting + status** — `t`, `formatMoney`, `orderStatusLabel`, `statusTone`.
 - **Theme-token engine** — `applyThemeSettings()` (derives the OKLCh accent ramp + font from tenant settings).
 - **Icon registry** — `Icon`, `SolarIcon`, `ICONS`, `resolveIcon`.
-- **Design-free leaf components** — `Swiper`, `RequireAuth`, `ErrorState`, `EmptyState`.
+- **Design-free leaf components** — `Swiper` (Embla-backed slide carousel), `SwipeRow`, `RequireAuth`, `ErrorState`, `EmptyState`.
 - **Boot + build glue** — `bootStorefront()` and the `defineThemeConfig()` Vite preset.
 - **Capabilities** — `ENDPOINTS`, `PATTERNS`, `SECTION_TYPES`, `CORE_VERSION` (the single source `create-safqi-theme` reads to emit each theme's `THEME-REFERENCE.md`).
 
