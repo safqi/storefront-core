@@ -7,7 +7,7 @@
  */
 
 /** Semver of this core; recorded by themes so drift against basic is detectable. */
-export const CORE_VERSION = "1.2.0";
+export const CORE_VERSION = "1.3.0";
 
 export interface EndpointSpec {
   /** Path relative to the tenant API base (window.appConfig.API_URL, .../api/v1). */
@@ -45,6 +45,13 @@ export const ENDPOINTS: EndpointGroup[] = [
       { path: "categories", method: "GET", summary: "Category tree", helper: "fetchCategories" },
       { path: "brands", method: "GET", summary: "Brand list", helper: "fetchBrands" },
       { path: "filters", method: "GET", summary: "Facets for the filter drawer", helper: "fetchFilters" },
+    ],
+  },
+  {
+    group: "Newsletter",
+    base: "v1",
+    endpoints: [
+      { path: "subscribe", method: "POST", summary: "Newsletter sign-up ({email} or {phone}); public. Posted by the `newsletter` section." },
     ],
   },
   {
@@ -109,6 +116,7 @@ export const ENDPOINTS: EndpointGroup[] = [
     base: "app",
     endpoints: [
       { path: "{slug}/*", method: "GET", summary: "App-owned endpoints (only for apps in window.appConfig.apps — gate with isAppInstalled)" },
+      { path: "{slug}/sections/{key}", method: "GET", summary: "Data for an app-contributed homepage section: { title, layout, items[] }. Served by the platform, not the app." },
     ],
   },
 ];
@@ -121,6 +129,7 @@ export const PATTERNS = [
 
 /** Homepage section types the theme's SectionRenderer must handle. */
 export const SECTION_TYPES = [
+  // Rendered by the THEME (each ships its own component).
   { type: "hero", name: "Hero", description: "Full-width landing banner." },
   { type: "product_grid", name: "Product grid", description: "Responsive grid of products by sort/category/brand." },
   { type: "product_swipe", name: "Product swipe", description: "Horizontal product rail." },
@@ -128,4 +137,21 @@ export const SECTION_TYPES = [
   { type: "brands", name: "Brands", description: "Brand strip." },
   { type: "banner_grid", name: "Banner grid", description: "Grid of promo banners." },
   { type: "banner_swipe", name: "Banner swipe", description: "Carousel of promo banners." },
+  // Rendered by the CORE via <CoreSectionRenderer/> — a theme gets these for
+  // free by delegating its SectionRenderer's default arm, and may still
+  // override any of them with its own `case`.
+  { type: "rich_text", name: "Rich text", description: "Heading + free-text body.", core: true },
+  { type: "image_text", name: "Image & text", description: "Image beside a heading, body and CTA.", core: true },
+  { type: "video", name: "Video", description: "YouTube / Vimeo / mp4 embed.", core: true },
+  { type: "faq", name: "FAQ", description: "Collapsible question/answer list.", core: true },
+  { type: "divider", name: "Divider", description: "Rule or blank space between sections.", core: true },
+  { type: "features_strip", name: "Features strip", description: "Icon + label trust badges.", core: true },
+  { type: "testimonials", name: "Testimonials", description: "Merchant-written customer quotes.", core: true },
+  { type: "featured_product", name: "Featured product", description: "One hand-picked product, large.", core: true },
+  { type: "countdown_offer", name: "Countdown offer", description: "Deal block with a live timer; hides itself once expired.", core: true },
+  { type: "newsletter", name: "Newsletter", description: "Email/phone capture posting to /api/v1/subscribe.", core: true },
+  { type: "marquee", name: "Marquee", description: "In-page scrolling text strip.", core: true },
+  // Contributed by an installed app: `app:{slug}:{key}`, data fetched from
+  // GET /api/apps/{slug}/sections/{key} and rendered by the core.
+  { type: "app:*", name: "App section", description: "A block an installed app contributes; the app ships no storefront JS.", core: true },
 ] as const;

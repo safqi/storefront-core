@@ -17,6 +17,20 @@ export function getAppConfig(): AppConfig {
 export const getApiUrl = (): string => getAppConfig().API_URL;
 
 /**
+ * Absolute URL for an installed app's endpoint.
+ *
+ * App routes live at `/api/apps/{slug}/…`, a SIBLING of the versioned catalog
+ * base (`/api/v1`) that axios.defaults.baseURL points at — so a relative path
+ * would resolve under `/api/v1` and 404.
+ */
+export const getAppApiUrl = (slug: string, path = ""): string => {
+  const base = getApiUrl().replace(/\/v\d+\/?$/, "");
+  const tail = path.replace(/^\/+/, "");
+
+  return `${base}/apps/${slug}${tail ? `/${tail}` : ""}`;
+};
+
+/**
  * True only when the storefront is rendered inside the admin theme-builder
  * preview iframe (served from /admin/theme/preview). Used to pick a URL-agnostic
  * router so the SPA boots at the homepage instead of 404-ing on the admin path.
@@ -64,6 +78,23 @@ export const getThemeSetting = <T>(key: string, fallback: T): T => {
   const value = getThemeSettings()[key];
   return (value === undefined || value === null ? fallback : value) as T;
 };
+
+/**
+ * Site-wide announcement bar. Disabled by default so an older backend (which
+ * ships no `announcement` key) simply renders nothing.
+ */
+export const getAnnouncement = (): AppAnnouncement =>
+  getTheme().announcement ?? {
+    enabled: false,
+    position: "top",
+    speed: 24,
+    pause_on_hover: true,
+    dismissible: true,
+    mobile_sheet: true,
+    bg: "#111827",
+    fg: "#ffffff",
+    messages: [],
+  };
 
 /** Homepage sections (ordered, enabled) + bottom-bar config. */
 export const getHomepage = (): AppHomepage => getAppConfig().homepage;

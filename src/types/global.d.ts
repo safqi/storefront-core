@@ -19,6 +19,33 @@ declare global {
     settings: Record<string, unknown>;
     /** URL of a variant's tokens.css overlay; null/absent for runtime themes. */
     tokens_url?: string | null;
+    /** Site-wide announcement bar. Absent on an older backend. */
+    announcement?: AppAnnouncement;
+  }
+
+  interface AppAnnouncementMessage {
+    /**
+     * Already resolved for the active locale, with the server-scope variables
+     * substituted. May still contain client-scope tokens like
+     * `{{customer_name}}` — <AnnouncementBar/> fills those per visitor.
+     */
+    text: string;
+    /** Resolved href; "" means the message isn't clickable. */
+    href: string;
+  }
+
+  interface AppAnnouncement {
+    enabled: boolean;
+    position: "top" | "bottom";
+    /** Seconds for one full marquee loop — higher is slower. */
+    speed: number;
+    pause_on_hover: boolean;
+    dismissible: boolean;
+    /** On mobile, a bottom bar floats above the tab bar instead of sticking flush. */
+    mobile_sheet: boolean;
+    bg: string;
+    fg: string;
+    messages: AppAnnouncementMessage[];
   }
 
   interface AppHomepageSection {

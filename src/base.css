@@ -407,3 +407,279 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .sf-no-scrollbar::-webkit-scrollbar {
   display: none;                  /* WebKit/Blink */
 }
+
+/* -----------------------------------------------------------------------------
+   Announcement bar — the site-wide scrolling marquee.
+
+   Colours come from the merchant (bg/fg as inline custom properties), so the
+   only thing a theme normally restyles here is the type scale and the radius of
+   the mobile sheet variant. The animation is pure CSS: the track holds TWO
+   identical copies of the message group and slides exactly -50%, so the moment
+   copy A leaves the viewport copy B is already sitting where it started — the
+   seam is invisible without measuring anything in JS.
+   --------------------------------------------------------------------------- */
+.sf-announcement {
+  --sf-announcement-bg: #111827;
+  --sf-announcement-fg: #ffffff;
+  --sf-announcement-speed: 24s;
+
+  position: sticky;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  padding-block: 0.5rem;
+  background-color: var(--sf-announcement-bg);
+  color: var(--sf-announcement-fg);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+.sf-announcement--top { inset-block-start: 0; }
+.sf-announcement--bottom { inset-block-end: 0; }
+
+/* A bottom bar would otherwise sit UNDER the mobile tab bar. `--sf-bottom-bar-h`
+   is published by the theme's bottom bar (it measures itself); the fallback
+   keeps the sheet clear of it on the first frame, before the measurement lands. */
+.sf-announcement--sheet {
+  position: fixed;
+  inset-inline: 0.75rem;
+  inset-block-end: calc(var(--sf-bottom-bar-h, 5.5rem) + 0.5rem);
+  border-radius: 999px;
+  padding-inline: 0.5rem;
+  box-shadow: 0 8px 30px rgb(0 0 0 / 0.18);
+}
+@media (min-width: 768px) {
+  .sf-announcement--sheet {
+    position: sticky;
+    inset-inline: auto;
+    inset-block-end: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+.sf-announcement__track {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: max-content;
+  animation: sf-announcement-scroll var(--sf-announcement-speed) linear infinite;
+}
+/* The document is RTL, so the track must travel the other way or the messages
+   scroll against the reading direction. */
+[dir="rtl"] .sf-announcement__track {
+  animation-name: sf-announcement-scroll-rtl;
+}
+
+.sf-announcement__group {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 2.5rem;
+  padding-inline-end: 2.5rem;
+}
+.sf-announcement__item { white-space: nowrap; }
+.sf-announcement__link { text-decoration: underline; text-underline-offset: 3px; }
+
+.sf-announcement--pausable:hover .sf-announcement__track { animation-play-state: paused; }
+
+.sf-announcement__close {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  padding-inline: 0.5rem;
+  color: inherit;
+  opacity: 0.7;
+}
+.sf-announcement__close:hover { opacity: 1; }
+
+@keyframes sf-announcement-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@keyframes sf-announcement-scroll-rtl {
+  from { transform: translateX(0); }
+  to   { transform: translateX(50%); }
+}
+
+/* Motion sensitivity: a permanently sliding strip is exactly what this setting
+   exists to stop. Fall back to a static, horizontally scrollable row. */
+@media (prefers-reduced-motion: reduce) {
+  .sf-announcement__track {
+    animation: none;
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .sf-announcement__track::-webkit-scrollbar { display: none; }
+  /* The second copy exists only to make the loop seamless. */
+  .sf-announcement__group:last-child { display: none; }
+}
+
+/* -----------------------------------------------------------------------------
+   Core section renderers — the content / trust / commerce blocks the core
+   renders on every theme's behalf (see CoreSectionRenderer).
+
+   Kept deliberately plain and token-driven: a theme restyles these by changing
+   its tokens, or overrides the type in its own SectionRenderer when it wants a
+   genuinely different structure.
+   --------------------------------------------------------------------------- */
+
+.sf-prose {
+  color: rgb(var(--foreground-2));
+  font-size: 0.9375rem;
+  line-height: 1.75;
+}
+
+/* Image + text ------------------------------------------------------------- */
+.sf-image-text__media { aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--sf-radius-card, 1.5rem); }
+.sf-image-text__copy { display: flex; flex-direction: column; gap: 0.75rem; }
+
+/* FAQ ---------------------------------------------------------------------- */
+.sf-faq__item {
+  border-radius: var(--sf-radius-card, 1.25rem);
+  background-color: rgb(var(--surface-2));
+  padding: 0.25rem 1rem;
+}
+.sf-faq__question {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-block: 0.875rem;
+  font-weight: 600;
+  color: rgb(var(--foreground));
+  cursor: pointer;
+  list-style: none;
+}
+/* Safari draws its own disclosure triangle unless this is cleared. */
+.sf-faq__question::-webkit-details-marker { display: none; }
+.sf-faq__chevron { flex: 0 0 auto; transition: transform 0.2s ease; }
+.sf-faq__item[open] .sf-faq__chevron { transform: rotate(180deg); }
+.sf-faq__answer { padding-block-end: 0.875rem; }
+
+/* Trust badges ------------------------------------------------------------- */
+.sf-features__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1rem 0.75rem;
+  border-radius: var(--sf-radius-card, 1.25rem);
+  background-color: rgb(var(--surface-2));
+  text-align: center;
+}
+.sf-features__icon { font-size: 1.5rem; color: rgb(var(--accent)); }
+.sf-features__title { font-size: 0.875rem; font-weight: 600; color: rgb(var(--foreground)); }
+.sf-features__subtitle { font-size: 0.75rem; color: rgb(var(--foreground-3)); }
+
+/* Testimonials ------------------------------------------------------------- */
+.sf-testimonial {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  border-radius: var(--sf-radius-card, 1.5rem);
+  background-color: rgb(var(--surface-2));
+}
+.sf-testimonial__stars { display: inline-flex; gap: 0.125rem; color: #f5a524; }
+.sf-testimonial__text { margin: 0; color: rgb(var(--foreground-2)); line-height: 1.7; }
+.sf-testimonial__author {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: auto;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(var(--foreground));
+}
+.sf-testimonial__avatar { width: 2rem; height: 2rem; border-radius: 999px; object-fit: cover; }
+
+/* Featured product --------------------------------------------------------- */
+.sf-featured__card {
+  display: grid;
+  gap: 1rem;
+  border-radius: var(--sf-radius-card, 1.5rem);
+  background-color: rgb(var(--surface-2));
+  overflow: hidden;
+}
+@media (min-width: 768px) {
+  .sf-featured__card { grid-template-columns: 1fr 1fr; align-items: center; }
+}
+.sf-featured__media { display: block; aspect-ratio: 4 / 3; overflow: hidden; }
+.sf-featured__body { display: flex; flex-direction: column; gap: 0.75rem; padding: 1.25rem; }
+.sf-featured__name { font-size: 1.25rem; font-weight: 700; color: rgb(var(--foreground)); }
+.sf-featured__excerpt { color: rgb(var(--foreground-3)); font-size: 0.875rem; line-height: 1.7; }
+.sf-featured__price { display: flex; align-items: baseline; gap: 0.5rem; }
+
+/* Countdown offer ---------------------------------------------------------- */
+.sf-countdown__box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 1.25rem;
+  border-radius: var(--sf-radius-card, 1.5rem);
+  background-color: var(--sf-countdown-bg, #111827);
+  color: var(--sf-countdown-fg, #fff);
+  text-align: center;
+}
+/* The block sets its own colours, so the shared title/prose tokens (which are
+   tuned for the page background) must not win inside it. */
+.sf-countdown__box .sf-section__title,
+.sf-countdown__box .sf-prose { color: inherit; }
+
+.sf-countdown__timer { display: flex; gap: 0.75rem; }
+.sf-countdown__unit {
+  display: flex;
+  min-width: 3.5rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  border-radius: 1rem;
+  background-color: rgb(255 255 255 / 0.12);
+  padding: 0.625rem 0.5rem;
+}
+.sf-countdown__value { font-size: 1.375rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.sf-countdown__label { font-size: 0.6875rem; opacity: 0.8; }
+
+/* Newsletter --------------------------------------------------------------- */
+.sf-newsletter__form { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.sf-newsletter__form > .sf-input { min-width: 12rem; }
+.sf-newsletter__success { color: rgb(var(--foreground)); font-weight: 600; }
+.sf-newsletter__error { color: #e11d48; font-size: 0.8125rem; }
+
+/* In-page marquee ---------------------------------------------------------- */
+/* Same track mechanics as the site-wide bar, minus the sticky positioning. */
+.sf-announcement--inline {
+  position: relative;
+  border-radius: var(--sf-radius-card, 1.25rem);
+}
+.sf-announcement--reverse .sf-announcement__track { animation-direction: reverse; }
+
+/* App-contributed sections --------------------------------------------------
+   One card shape for every app: an app returns normalised items and the theme
+   draws them, so an app never ships storefront CSS or JS. */
+.sf-app-section__card {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--sf-radius-card, 1.25rem);
+  background-color: rgb(var(--surface-2));
+}
+.sf-app-section__image { aspect-ratio: 1 / 1; width: 100%; object-fit: cover; }
+.sf-app-section__body { display: flex; flex-direction: column; gap: 0.125rem; padding: 0.75rem; }
+.sf-app-section__badge {
+  align-self: flex-start;
+  border-radius: 999px;
+  background-color: rgb(var(--accent) / 0.12);
+  padding: 0.125rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: rgb(var(--accent));
+}
+.sf-app-section__title { font-size: 0.875rem; font-weight: 600; color: rgb(var(--foreground)); }
+.sf-app-section__subtitle { font-size: 0.75rem; color: rgb(var(--foreground-3)); }

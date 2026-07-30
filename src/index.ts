@@ -68,6 +68,19 @@ export { default as Swiper } from "./components/Swiper";
 export { default as SwipeRow } from "./components/SwipeRow";
 export type { SwipeRowProps } from "./components/SwipeRow";
 export { default as RequireAuth } from "./components/RequireAuth";
+export { SmartLink, isExternalHref } from "./components/SmartLink";
+export type { SmartLinkProps } from "./components/SmartLink";
+export { AnnouncementBar } from "./components/AnnouncementBar";
+
+// --- homepage sections rendered by the core (a theme's SectionRenderer
+//     delegates its default arm here; see CoreSectionRenderer) ---
+export { CoreSectionRenderer, CORE_SECTION_TYPES } from "./sections/CoreSectionRenderer";
+export { AppSection, parseAppSectionType } from "./sections/AppSection";
+export type { AppSectionItem, AppSectionPayload } from "./sections/AppSection";
+export { parseVideo, ASPECTS } from "./sections/video";
+export type { VideoSource } from "./sections/video";
+export { parseDeadline, remaining, pad } from "./sections/countdown";
+export type { Remaining } from "./sections/countdown";
 
 // --- types (API + storefront contract) ---
 export * from "./types/product";

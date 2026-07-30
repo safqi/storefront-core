@@ -17,7 +17,7 @@ import type {
  * resource wrapper (`{ data: ... }`); we unwrap defensively.
  */
 
-export type ProductSort = "latest" | "price_asc" | "price_desc" | "popular";
+export type ProductSort = "latest" | "oldest" | "price_asc" | "price_desc" | "popular";
 
 /** Filters accepted by the products listing endpoint. */
 export interface ProductQuery {
