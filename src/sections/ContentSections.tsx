@@ -401,16 +401,18 @@ export function MarqueeSection({ section }: Props) {
       aria-label={items.join(" — ")}
     >
       {/* Two copies so the loop is seamless — see the announcement bar. */}
-      <div className="sf-announcement__track">
-        {[0, 1].map((copy) => (
-          <div className="sf-announcement__group" key={copy} aria-hidden={copy === 1}>
-            {items.map((text, i) => (
-              <span className="sf-announcement__item" key={`${copy}-${i}`}>
-                {text}
-              </span>
-            ))}
-          </div>
-        ))}
+      <div className="sf-announcement__viewport">
+        <div className="sf-announcement__track">
+          {[0, 1].map((copy) => (
+            <div className="sf-announcement__group" key={copy} aria-hidden={copy === 1}>
+              {items.map((text, i) => (
+                <span className="sf-announcement__item" key={`${copy}-${i}`}>
+                  {text}
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

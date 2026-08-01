@@ -64,28 +64,33 @@ export function AnnouncementBar({ slot }: AnnouncementBarProps = {}) {
 
   // The track is rendered TWICE and translated by exactly -50%, which is what
   // makes the loop seamless: as copy A leaves, copy B is already in its place.
+  // It needs its own clipping viewport — as a direct flex child of the bar the
+  // track would have to share the row with the close button, and the resulting
+  // shrink/grow made 50% of the track stop meaning "one copy".
   const track = (
-    <div className="sf-announcement__track" aria-hidden={false}>
-      {[0, 1].map((copy) => (
-        <div className="sf-announcement__group" key={copy} aria-hidden={copy === 1}>
-          {bar.messages.map((message, i) => {
-            const text = personalize(message.text, name);
-            if (!text) return null;
+    <div className="sf-announcement__viewport">
+      <div className="sf-announcement__track" aria-hidden={false}>
+        {[0, 1].map((copy) => (
+          <div className="sf-announcement__group" key={copy} aria-hidden={copy === 1}>
+            {bar.messages.map((message, i) => {
+              const text = personalize(message.text, name);
+              if (!text) return null;
 
-            return (
-              <span className="sf-announcement__item" key={`${copy}-${i}`}>
-                {message.href ? (
-                  <SmartLink href={message.href} className="sf-announcement__link">
-                    {text}
-                  </SmartLink>
-                ) : (
-                  text
-                )}
-              </span>
-            );
-          })}
-        </div>
-      ))}
+              return (
+                <span className="sf-announcement__item" key={`${copy}-${i}`}>
+                  {message.href ? (
+                    <SmartLink href={message.href} className="sf-announcement__link">
+                      {text}
+                    </SmartLink>
+                  ) : (
+                    text
+                  )}
+                </span>
+              );
+            })}
+          </div>
+        ))}
+      </div>
     </div>
   );
 

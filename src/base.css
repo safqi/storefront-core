@@ -459,11 +459,23 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   }
 }
 
-.sf-announcement__track {
-  display: flex;
+/* The clipping window. It — not the track — is the flex item that shares the bar
+   with the close button, so the track is free to be as wide as its content
+   without squeezing the button out of the bar. */
+.sf-announcement__viewport {
   flex: 1 1 auto;
   min-width: 0;
+  overflow: hidden;
+}
+
+/* `translateX(±50%)` is a percentage of the TRACK'S OWN box, so the track must
+   measure exactly two copies for one cycle to advance exactly one copy. Hence
+   `width: max-content` with no shrinking (it sits in the viewport above, not in
+   the bar) and `min-width: 100%` so a short message set still spans the bar. */
+.sf-announcement__track {
+  display: flex;
   width: max-content;
+  min-width: 100%;
   animation: sf-announcement-scroll var(--sf-announcement-speed) linear infinite;
 }
 /* The document is RTL, so the track must travel the other way or the messages
@@ -472,9 +484,16 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   animation-name: sf-announcement-scroll-rtl;
 }
 
+/* `flex: 1 0 auto` is the other half of the seam. When the messages are shorter
+   than the bar, the two copies have identical base sizes and identical grow
+   factors, so they split the slack evenly and each ends up at exactly 50% of the
+   track — which is precisely what the keyframes translate by. Without it the
+   slack pools at the end of the track, the cycle overshoots one copy, and the
+   bar blanks out before snapping back to the start edge instead of scrolling
+   continuously. */
 .sf-announcement__group {
   display: flex;
-  flex: 0 0 auto;
+  flex: 1 0 auto;
   align-items: center;
   gap: 2.5rem;
   padding-inline-end: 2.5rem;
@@ -506,15 +525,19 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 /* Motion sensitivity: a permanently sliding strip is exactly what this setting
    exists to stop. Fall back to a static, horizontally scrollable row. */
 @media (prefers-reduced-motion: reduce) {
-  .sf-announcement__track {
-    animation: none;
-    width: 100%;
+  .sf-announcement__viewport {
     overflow-x: auto;
     scrollbar-width: none;
   }
-  .sf-announcement__track::-webkit-scrollbar { display: none; }
+  .sf-announcement__viewport::-webkit-scrollbar { display: none; }
+  .sf-announcement__track {
+    animation: none;
+    width: max-content;
+  }
   /* The second copy exists only to make the loop seamless. */
   .sf-announcement__group:last-child { display: none; }
+  /* …and with it gone the first must not stretch to fill the track. */
+  .sf-announcement__group { flex-grow: 0; }
 }
 
 /* -----------------------------------------------------------------------------
