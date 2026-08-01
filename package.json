@@ -1,6 +1,6 @@
 {
   "name": "@safqi/storefront-core",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "description": "Shared, versioned core for Safqi multi-tenant storefront themes: the data/API client, auth, cart, i18n, theme-token engine, the window.appConfig + API type contract, design-free leaf components, and the boot/build glue. Themes depend on this and own only their presentation.",
   "license": "proprietary",
   "type": "module",

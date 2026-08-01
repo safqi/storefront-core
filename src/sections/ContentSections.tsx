@@ -6,6 +6,7 @@ import { ASPECTS, parseVideo } from "./video";
 import { pad, parseDeadline, remaining, type Remaining } from "./countdown";
 import axios from "axios";
 import { t } from "../lib/i18n";
+import { useMarqueeRepeats } from "../lib/useMarqueeRepeats";
 
 /**
  * Core renderers for the content / trust / commerce section types.
@@ -383,6 +384,9 @@ export function MarqueeSection({ section }: Props) {
     .map((i) => (i.text ?? "").trim())
     .filter(Boolean);
 
+  // Before the early return — hooks cannot be conditional.
+  const [repeats, viewportRef, unitRef] = useMarqueeRepeats([items.join(" ")]);
+
   if (items.length === 0) return null;
 
   const reverse = cfg<string>(c, "direction", "forward") === "reverse";
@@ -400,11 +404,16 @@ export function MarqueeSection({ section }: Props) {
       role="marquee"
       aria-label={items.join(" — ")}
     >
-      {/* Two copies so the loop is seamless — see the announcement bar. */}
-      <div className="sf-announcement__viewport">
+      {/* Two identical halves so the loop is seamless — see the announcement bar. */}
+      <div className="sf-announcement__viewport" ref={viewportRef}>
         <div className="sf-announcement__track">
-          {[0, 1].map((copy) => (
-            <div className="sf-announcement__group" key={copy} aria-hidden={copy === 1}>
+          {Array.from({ length: repeats * 2 }, (_, copy) => (
+            <div
+              className="sf-announcement__group"
+              key={copy}
+              ref={copy === 0 ? unitRef : undefined}
+              aria-hidden={copy > 0}
+            >
               {items.map((text, i) => (
                 <span className="sf-announcement__item" key={`${copy}-${i}`}>
                   {text}

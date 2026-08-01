@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getAnnouncement } from "../lib/appConfig";
 import { dismissKey, personalize } from "../lib/announcement";
 import { useAuth } from "../lib/auth";
+import { useMarqueeRepeats } from "../lib/useMarqueeRepeats";
 import { SmartLink } from "./SmartLink";
 import { SolarIcon } from "./SolarIcon";
 
@@ -38,6 +39,9 @@ export function AnnouncementBar({ slot }: AnnouncementBarProps = {}) {
   const texts = useMemo(() => bar.messages.map((m) => m.text), [bar.messages]);
   const key = useMemo(() => dismissKey(texts), [texts]);
 
+  // Must run before the early returns below — hooks cannot be conditional.
+  const [repeats, viewportRef, unitRef] = useMarqueeRepeats([key, user?.name]);
+
   // Start hidden and reveal after reading localStorage: rendering the bar first
   // and hiding it a tick later flashes it at every visitor who dismissed it.
   useEffect(() => {
@@ -62,16 +66,26 @@ export function AnnouncementBar({ slot }: AnnouncementBarProps = {}) {
     }
   };
 
-  // The track is rendered TWICE and translated by exactly -50%, which is what
-  // makes the loop seamless: as copy A leaves, copy B is already in its place.
+  // The track is TWO identical halves translated by exactly -50%, which is what
+  // makes the loop seamless: as half A leaves, half B is already in its place.
+  // Each half holds `repeats` natural-width copies so a short message set fills
+  // the bar by repeating at its own spacing rather than by stretching two copies
+  // (which parks the second copy's text dead centre). See useMarqueeRepeats.
+  //
   // It needs its own clipping viewport — as a direct flex child of the bar the
   // track would have to share the row with the close button, and the resulting
-  // shrink/grow made 50% of the track stop meaning "one copy".
+  // shrink/grow made 50% of the track stop meaning "one half".
+  const copies = repeats * 2;
   const track = (
-    <div className="sf-announcement__viewport">
+    <div className="sf-announcement__viewport" ref={viewportRef}>
       <div className="sf-announcement__track" aria-hidden={false}>
-        {[0, 1].map((copy) => (
-          <div className="sf-announcement__group" key={copy} aria-hidden={copy === 1}>
+        {Array.from({ length: copies }, (_, copy) => (
+          <div
+            className="sf-announcement__group"
+            key={copy}
+            ref={copy === 0 ? unitRef : undefined}
+            aria-hidden={copy > 0}
+          >
             {bar.messages.map((message, i) => {
               const text = personalize(message.text, name);
               if (!text) return null;

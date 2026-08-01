@@ -484,16 +484,15 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   animation-name: sf-announcement-scroll-rtl;
 }
 
-/* `flex: 1 0 auto` is the other half of the seam. When the messages are shorter
-   than the bar, the two copies have identical base sizes and identical grow
-   factors, so they split the slack evenly and each ends up at exactly 50% of the
-   track — which is precisely what the keyframes translate by. Without it the
-   slack pools at the end of the track, the cycle overshoots one copy, and the
-   bar blanks out before snapping back to the start edge instead of scrolling
-   continuously. */
+/* Copies keep their NATURAL width — never stretched to fill the track. A short
+   message set is made to fill the bar by repeating (the copy count comes from
+   useMarqueeRepeats), not by inflating two copies to half the bar each, which
+   parks the second copy's text on the exact centre line and reads as a
+   duplicated message rather than as a ticker. Uniform 2.5rem spacing everywhere
+   is what makes it read as one continuous stream. */
 .sf-announcement__group {
   display: flex;
-  flex: 1 0 auto;
+  flex: 0 0 auto;
   align-items: center;
   gap: 2.5rem;
   padding-inline-end: 2.5rem;
@@ -534,10 +533,8 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     animation: none;
     width: max-content;
   }
-  /* The second copy exists only to make the loop seamless. */
-  .sf-announcement__group:last-child { display: none; }
-  /* …and with it gone the first must not stretch to fill the track. */
-  .sf-announcement__group { flex-grow: 0; }
+  /* Every copy past the first exists only to make the loop seamless. */
+  .sf-announcement__group:not(:first-child) { display: none; }
 }
 
 /* -----------------------------------------------------------------------------
