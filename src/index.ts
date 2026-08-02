@@ -45,6 +45,8 @@ export type { Theme } from "./lib/useTheme";
 export { useHideOnScroll } from "./lib/useHideOnScroll";
 export {
   useDragScroll,
+  // The framework-free half, for markup a theme wires up outside React.
+  attachDragScroll,
   computeVelocity,
   isFlick,
   isCoastFinished,
