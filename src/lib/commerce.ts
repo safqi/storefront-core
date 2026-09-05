@@ -1,6 +1,7 @@
 import axios from "axios";
 import type {
   Address,
+  BankTransferProof,
   Cart,
   Customer,
   DigitalDownload,
@@ -299,18 +300,46 @@ export async function payOrder(orderId: number): Promise<OrderPaymentInfo> {
 
 // ─── Orders ────────────────────────────────────────────────────────────────────
 
-export async function checkout(payload: {
-  // Null for a fully-virtual cart (digital + fitness) — no delivery address.
-  address_id: number | null;
-  note?: string | null;
-  shipping_app?: string | null;
-  shipping_method?: string | null;
-  /** Loyalty points to redeem; bounded server-side by balance + program caps. */
-  redeem_points?: number | null;
-  /** 'cod' or an online gateway slug from fetchPaymentMethods. */
-  payment_method: string;
-}): Promise<{ order: Order; payment: OrderPaymentInfo | null }> {
-  const { data } = await axios.post("orders", payload);
+/**
+ * Flatten a payload to FormData. Laravel needs booleans as 1/0 and reads
+ * nothing from a null, so undefined/null entries are dropped entirely.
+ */
+function toFormData(payload: object): FormData {
+  const form = new FormData();
+
+  for (const [key, value] of Object.entries(payload)) {
+    if (value === null || value === undefined) continue;
+
+    if (value instanceof File || value instanceof Blob) {
+      form.append(key, value);
+    } else if (typeof value === "boolean") {
+      form.append(key, value ? "1" : "0");
+    } else {
+      form.append(key, String(value));
+    }
+  }
+
+  return form;
+}
+
+export async function checkout(
+  payload: {
+    // Null for a fully-virtual cart (digital + fitness) — no delivery address.
+    address_id: number | null;
+    note?: string | null;
+    shipping_app?: string | null;
+    shipping_method?: string | null;
+    /** Loyalty points to redeem; bounded server-side by balance + program caps. */
+    redeem_points?: number | null;
+    /** 'cod', 'bank_transfer', or an online gateway slug from fetchPaymentMethods. */
+    payment_method: string;
+  } & Partial<BankTransferProof>,
+): Promise<{ order: Order; payment: OrderPaymentInfo | null }> {
+  // A receipt image forces multipart; every other checkout stays plain JSON so
+  // the existing request shape is untouched.
+  const { data } = payload.transfer_receipt
+    ? await axios.post("orders", toFormData(payload))
+    : await axios.post("orders", payload);
 
   // An online method carries a `payment` key with the hosted-page redirect;
   // COD returns the bare order.
@@ -318,6 +347,21 @@ export async function checkout(payload: {
     order: unwrap<Order>(data),
     payment: (data?.payment ?? null) as OrderPaymentInfo | null,
   };
+}
+
+/**
+ * Resubmit the bank-transfer proof for an unpaid order — used after the
+ * merchant rejects an attempt. Refused (422) while one is still under review.
+ */
+export async function submitTransfer(
+  orderId: number,
+  proof: BankTransferProof,
+): Promise<OrderPaymentInfo> {
+  const { data } = proof.transfer_receipt
+    ? await axios.post(`orders/${orderId}/transfer`, toFormData(proof))
+    : await axios.post(`orders/${orderId}/transfer`, proof);
+
+  return data.payment as OrderPaymentInfo;
 }
 
 export async function fetchOrders(): Promise<Order[]> {

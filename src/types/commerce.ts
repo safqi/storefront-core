@@ -141,11 +141,56 @@ export interface ShippingOption {
  * `method` is 'cod' or an online gateway slug (e.g. 'aps'); COD is offered only
  * for physical carts while the merchant keeps it enabled.
  */
+/**
+ * One of the merchant's own bank accounts, offered under the `bank_transfer`
+ * payment method. The customer transfers the money externally, then submits the
+ * reference and/or a receipt image with the order.
+ */
+export interface BankAccountOption {
+  id: number;
+  name: string;
+  bank_name: string | null;
+  account_holder: string;
+  account_number: string;
+  iban: string | null;
+  logo: string | null;
+  instructions: string | null;
+}
+
 export interface PaymentMethodOption {
   method: string;
-  type: "cod" | "online";
+  type: "cod" | "bank_transfer" | "online";
   label: string;
   logo: string | null;
+  /** True when the method collects a transfer reference / receipt at checkout. */
+  requires_proof?: boolean;
+  /** Non-empty only for `bank_transfer` — the accounts to choose between. */
+  accounts?: BankAccountOption[];
+}
+
+/**
+ * One submitted bank transfer as the customer sees it. `pending` is awaiting the
+ * merchant's review; `failed` carries the `rejection_reason` and means the
+ * customer may resubmit via `submitTransfer`.
+ */
+export interface BankTransferAttempt {
+  id: number;
+  status: "pending" | "paid" | "failed";
+  sender_name: string | null;
+  transfer_reference: string | null;
+  receipt_url: string | null;
+  rejection_reason: string | null;
+  reviewed_at: string | null;
+  created_at: string | null;
+}
+
+/** The proof a customer submits for a manual bank transfer. */
+export interface BankTransferProof {
+  bank_account_id: number;
+  sender_name?: string | null;
+  transfer_reference?: string | null;
+  /** Receipt image. Its presence switches the request to multipart. */
+  transfer_receipt?: File | null;
 }
 
 /**
@@ -192,8 +237,16 @@ export interface Order {
   order_number: string;
   status: string;
   payment_status: string;
-  /** 'cod' or the online gateway slug chosen at checkout (null for legacy orders). */
+  /**
+   * 'cod', 'bank_transfer', or the online gateway slug chosen at checkout
+   * (null for legacy orders).
+   */
   payment_method?: string | null;
+  /**
+   * Manual bank-transfer attempts, newest first. Present only when
+   * `payment_method === "bank_transfer"`.
+   */
+  bank_transfer?: BankTransferAttempt[];
   /** Goods total after discount (excludes shipping). */
   amount: string;
   discount?: string;

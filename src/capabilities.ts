@@ -95,10 +95,11 @@ export const ENDPOINTS: EndpointGroup[] = [
     group: "Checkout, shipping & payments",
     base: "v1",
     endpoints: [
-      { path: "shipping/options", method: "GET", summary: "Shipping methods for the cart", helper: "fetchShippingOptions", auth: true },
-      { path: "payment/methods", method: "GET", summary: "Enabled payment methods", helper: "fetchPaymentMethods" },
-      { path: "checkout", method: "POST", summary: "Place order", helper: "checkout", auth: true },
+      { path: "checkout/shipping-options", method: "GET", summary: "Shipping methods for the cart", helper: "fetchShippingOptions", auth: true },
+      { path: "checkout/payment-methods", method: "GET", summary: "Enabled payment methods (COD, bank transfer + its accounts, online gateways)", helper: "fetchPaymentMethods", auth: true },
+      { path: "orders", method: "POST", summary: "Place order", helper: "checkout", auth: true },
       { path: "orders/{id}/pay", method: "POST", summary: "Pay for an order", helper: "payOrder", auth: true },
+      { path: "orders/{id}/transfer", method: "POST", summary: "Resubmit a rejected bank-transfer proof", helper: "submitTransfer", auth: true },
     ],
   },
   {
