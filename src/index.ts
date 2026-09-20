@@ -33,7 +33,7 @@ export { useCart } from "./lib/useCart";
 // --- i18n + formatting + status ---
 export { t, lang } from "./lib/i18n";
 export type { Dict } from "./lib/i18n";
-export { formatMoney, safeCurrency } from "./lib/format";
+export { formatMoney, safeCurrency, currencySymbol, formatPrice } from "./lib/format";
 export { orderStatusLabel, paymentStatusLabel, statusTone } from "./lib/orderStatus";
 
 // --- theme token engine ---

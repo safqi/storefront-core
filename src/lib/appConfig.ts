@@ -61,6 +61,26 @@ export const getAppLocation = (): string => getAppConfig().APP_LOCATION ?? "";
 /** Active currency code, e.g. "YER" */
 export const getCurrency = (): string => getAppConfig().CURRENCY;
 
+/** Metadata for the currency being viewed, falling back to the bare code when
+ *  the backend predates CURRENCY_META. */
+export const getCurrencyMeta = () => {
+  const cfg = getAppConfig();
+  const code = cfg.CURRENCY_META?.code ?? cfg.CURRENCY;
+
+  return (
+    cfg.CURRENCY_META ?? {
+      code,
+      symbol: code,
+      decimals: 2,
+      name_ar: code,
+      store: code,
+    }
+  );
+};
+
+/** Every currency the store offers. Empty/one entry = hide the switcher. */
+export const getCurrencies = () => getAppConfig().CURRENCIES ?? [];
+
 /** Active plan info injected by the server */
 export const getPlan = (): AppPlan => getAppConfig().plan;
 

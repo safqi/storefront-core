@@ -119,7 +119,28 @@ declare global {
     APP_LOGO: string;
     APP_PHONE: string;
     APP_LOCATION?: string | null;
+    /** The store's currency CODE, e.g. "YER". Kept a bare string for
+     *  backward compatibility — external themes have always read it that way. */
     CURRENCY: string;
+    /** The currency the visitor is currently VIEWING in, with everything needed
+     *  to render it. `store` is what amounts are actually stored in; `code` is
+     *  what this response is denominated in. They differ only when the shopper
+     *  has switched currency. */
+    CURRENCY_META?: {
+      code: string;
+      symbol: string;
+      decimals: number;
+      name_ar: string;
+      store: string;
+    };
+    /** Every currency this store offers. One entry = nothing to switch between,
+     *  so a theme should hide its currency switcher. */
+    CURRENCIES?: Array<{
+      code: string;
+      symbol: string;
+      decimals: number;
+      name_ar: string;
+    }>;
     plan: AppPlan;
     theme: AppTheme;
     homepage: AppHomepage;
