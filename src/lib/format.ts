@@ -1,9 +1,16 @@
-import { getCurrency, getAppLang, getCurrencyMeta } from "./appConfig";
+import { getAppLang, getCurrencyMeta } from "./appConfig";
 
-/** Active currency code, falling back to empty string if appConfig is absent. */
+/**
+ * The code of the currency the shopper is CURRENTLY viewing (e.g. "YER").
+ *
+ * Reads CURRENCY_META.code, not appConfig.CURRENCY — the latter is frozen to
+ * the STORE currency for backward compatibility with external themes, so
+ * reading it made every price label say "USD" while the amounts beside it had
+ * already been converted to the shopper's pick.
+ */
 export function safeCurrency(): string {
   try {
-    return getCurrency();
+    return getCurrencyMeta().code;
   } catch {
     return "";
   }
