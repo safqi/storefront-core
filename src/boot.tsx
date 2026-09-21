@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, MemoryRouter } from "react-router-dom";
 import axios from "axios";
+import { initCurrency } from "./lib/currency";
 import { getApiUrl, getAppDir, getAppLang, getIsPreview } from "./lib/appConfig";
 import { applyThemeSettings } from "./lib/themeSettings";
 import { queryClient } from "./lib/queryClient";
@@ -48,6 +49,12 @@ export interface BootOptions {
 export function bootStorefront({ children, rootId = "root" }: BootOptions): void {
   axios.defaults.baseURL = getApiUrl();
   axios.defaults.headers.common.Accept = "application/json";
+
+  // Pin the shopper's chosen currency onto every request BEFORE the first query
+  // runs — a later call cannot un-fetch data already requested in the wrong
+  // currency. Lives here rather than in each theme so every theme, including
+  // external marketplace ones, gets it without a code change.
+  initCurrency();
 
   // Direction/language live on <html>, never in a theme stylesheet, so an LTR
   // locale actually flips the layout. Idempotent with the Blade shell.
