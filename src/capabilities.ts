@@ -7,7 +7,7 @@
  */
 
 /** Semver of this core; recorded by themes so drift against basic is detectable. */
-export const CORE_VERSION = "1.3.0";
+export const CORE_VERSION = "1.7.0";
 
 export interface EndpointSpec {
   /** Path relative to the tenant API base (window.appConfig.API_URL, .../api/v1). */

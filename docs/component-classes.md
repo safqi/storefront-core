@@ -56,8 +56,21 @@ Example reskin — flatter corners everywhere, one edit:
 | `.sf-title`, `.sf-price`, `.sf-muted` | text roles |
 | `.glass`, `.glass-dark`, `.glass-badge`, `.glass-button`, `.accent-gradient` | liquid-glass effects |
 | `.rich-text` | server-sanitized HTML (descriptions) |
+| `.sf-lightbox` + `__backdrop` / `__bar` / `__counter` / `__btn` / `__frame` / `__img` (`.is-zoomed`) / `__nav--prev` / `__nav--next` / `__thumbs` / `__thumb` (`.is-active`) | full-screen photo viewer (`<Lightbox />`) |
+| `.sf-dialog` + `__backdrop` / `__panel` / `__icon` (`.is-destructive`) / `__title` / `__message` / `__actions` / `__action` (`--danger`) | confirmation modal (`<ConfirmDialog />`) |
 
 Modifiers stack: `class="sf-btn sf-btn--primary sf-btn--lg sf-btn--block"`.
+
+## Why the core's own components are styled here, not with Tailwind
+
+Tailwind v4's automatic source detection **skips `node_modules`**, and no theme
+declares an `@source` for this package. A utility class that appears *only*
+inside a core component is therefore never generated, and the rule silently
+goes missing in every theme — there is no error, just an unstyled element.
+
+So any component the core ships must be styled from this file (or from classes
+a theme already uses). `<Lightbox />` and `<ConfirmDialog />` follow that rule;
+that is why `.sf-lightbox*` / `.sf-dialog*` exist.
 
 ## For theme authors
 

@@ -703,3 +703,245 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 }
 .sf-app-section__title { font-size: 0.875rem; font-weight: 600; color: rgb(var(--foreground)); }
 .sf-app-section__subtitle { font-size: 0.75rem; color: rgb(var(--foreground-3)); }
+
+/* -----------------------------------------------------------------------------
+   Overlays — the photo viewer (`<Lightbox />`) and the confirmation modal
+   (`<ConfirmDialog />`).
+
+   These are styled here, in raw CSS, rather than with Tailwind utilities inside
+   the components: Tailwind's automatic source detection SKIPS node_modules, so
+   a utility class that appears only inside this package is never generated and
+   the rule silently vanishes in every theme. Everything below is always
+   emitted, needs no Tailwind at the consumer, and a theme reskins it by
+   overriding a rule after its `@import` of this file.
+   --------------------------------------------------------------------------- */
+
+:root {
+  --sf-overlay-z:  60;     /* above the sticky header + bottom bar */
+  --sf-overlay-bg: 0 0 0;  /* backdrop ink, as RGB channels */
+}
+
+/* Photo viewer -------------------------------------------------------------- */
+.sf-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: var(--sf-overlay-z);
+  display: flex;
+  flex-direction: column;
+  /* A drag inside the viewer pages the photos; letting the browser also scroll
+     or trigger pull-to-refresh turns every swipe into a fight. */
+  touch-action: none;
+  overscroll-behavior: contain;
+}
+
+.sf-lightbox__backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: rgb(var(--sf-overlay-bg) / 0.92);
+  animation: sf-overlay-in 0.18s ease-out;
+}
+
+.sf-lightbox__bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: max(0.75rem, env(safe-area-inset-top)) 1rem 0.5rem;
+  color: #fff;
+}
+
+.sf-lightbox__counter {
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+}
+
+.sf-lightbox__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+  /* Every radius below reads a theme token, never a literal — a square theme
+     (dar zeroes --sf-radius-*) must not end up with pill buttons floating over
+     its photos. */
+  border-radius: var(--sf-radius-chip, 999px);
+  background-color: rgb(255 255 255 / 0.12);
+  color: #fff;
+  cursor: pointer;
+}
+.sf-lightbox__btn:active { transform: scale(0.94); }
+
+/* The frame is the pan viewport: it clips the zoomed image and supplies the
+   width/height that clampPan() measures the travel limits against. */
+.sf-lightbox__frame {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0.5rem 1rem;
+}
+
+.sf-lightbox__img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  cursor: zoom-in;
+  user-select: none;
+  -webkit-user-drag: none;
+  transition: transform 0.2s ease-out;
+  animation: sf-overlay-in 0.2s ease-out;
+}
+.sf-lightbox__img.is-zoomed {
+  cursor: zoom-out;
+  /* A pan follows the finger 1:1 — easing it would lag behind the pointer. */
+  transition: none;
+}
+
+.sf-lightbox__nav {
+  position: absolute;
+  inset-block-start: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: none;
+  border-radius: var(--sf-radius-chip, 999px);
+  background-color: rgb(255 255 255 / 0.12);
+  color: #fff;
+  cursor: pointer;
+}
+.sf-lightbox__nav:hover { background-color: rgb(255 255 255 / 0.2); }
+/* Logical insets: "previous" sits on the right in Arabic with no extra rule. */
+.sf-lightbox__nav--prev { inset-inline-start: 0.75rem; }
+.sf-lightbox__nav--next { inset-inline-end: 0.75rem; }
+
+.sf-lightbox__thumbs {
+  position: relative;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0.75rem 1rem max(0.75rem, env(safe-area-inset-bottom));
+}
+.sf-lightbox__thumbs::-webkit-scrollbar { display: none; }
+
+.sf-lightbox__thumb {
+  flex: 0 0 auto;
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: var(--sf-radius-card-sm, 0.75rem);
+  background: none;
+  opacity: 0.5;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.sf-lightbox__thumb img { width: 100%; height: 100%; object-fit: cover; }
+.sf-lightbox__thumb:hover { opacity: 0.8; }
+.sf-lightbox__thumb.is-active { opacity: 1; border-color: #fff; }
+
+/* Confirmation modal -------------------------------------------------------- */
+.sf-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: var(--sf-overlay-z);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+}
+
+.sf-dialog__backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: rgb(var(--sf-overlay-bg) / 0.45);
+  animation: sf-overlay-in 0.15s ease-out;
+}
+
+.sf-dialog__panel {
+  position: relative;
+  width: 100%;
+  max-width: 22rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem 1.25rem 1.25rem;
+  border-radius: var(--sf-radius-card, 1.5rem);
+  background-color: rgb(var(--surface));
+  box-shadow: 0 20px 60px rgb(0 0 0 / 0.25);
+  text-align: center;
+  animation: sf-dialog-in 0.18s ease-out;
+}
+
+.sf-dialog__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--sf-radius-chip, 999px);
+  background-color: rgb(var(--surface-2));
+  color: rgb(var(--foreground-2));
+}
+.sf-dialog__icon.is-destructive {
+  background-color: rgb(var(--danger) / 0.12);
+  color: rgb(var(--danger));
+}
+
+.sf-dialog__title {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: rgb(var(--foreground));
+}
+.sf-dialog__message {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: rgb(var(--foreground-2));
+}
+
+.sf-dialog__actions {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  margin-top: 0.75rem;
+}
+.sf-dialog__action { flex: 1 1 0; }
+.sf-dialog__action--danger {
+  background-color: rgb(var(--danger));
+  color: #fff;
+}
+.sf-dialog__action--danger:active:not(:disabled) { opacity: 0.85; }
+
+@keyframes sf-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes sf-dialog-in {
+  from { opacity: 0; transform: translateY(0.5rem) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* A viewer that fades and a panel that pops are exactly the motion this
+   setting exists to suppress. */
+@media (prefers-reduced-motion: reduce) {
+  .sf-lightbox__backdrop,
+  .sf-lightbox__img,
+  .sf-dialog__backdrop,
+  .sf-dialog__panel { animation: none; }
+  .sf-lightbox__img { transition: none; }
+}

@@ -81,6 +81,16 @@ export { default as RequireAuth } from "./components/RequireAuth";
 export { SmartLink, isExternalHref } from "./components/SmartLink";
 export type { SmartLinkProps } from "./components/SmartLink";
 export { AnnouncementBar } from "./components/AnnouncementBar";
+export { default as Lightbox } from "./components/Lightbox";
+export type { LightboxProps } from "./components/Lightbox";
+export { default as ConfirmDialog } from "./components/ConfirmDialog";
+export type { ConfirmDialogProps } from "./components/ConfirmDialog";
+export { default as ScrollToTop } from "./components/ScrollToTop";
+
+// --- navigation / viewer logic (the framework-free halves) ---
+export { shouldScrollToTop } from "./lib/scrollTop";
+export type { ScrollDecision, NavigationKind } from "./lib/scrollTop";
+export { stepIndex, swipeStep, keyAction, clampPan, SWIPE_THRESHOLD } from "./lib/lightbox";
 
 // --- homepage sections rendered by the core (a theme's SectionRenderer
 //     delegates its default arm here; see CoreSectionRenderer) ---

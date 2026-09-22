@@ -8,6 +8,7 @@ import { getApiUrl, getAppDir, getAppLang, getIsPreview } from "./lib/appConfig"
 import { applyThemeSettings } from "./lib/themeSettings";
 import { queryClient } from "./lib/queryClient";
 import { AuthProvider } from "./lib/auth";
+import { ScrollToTop } from "./components/ScrollToTop";
 
 export interface BootOptions {
   /**
@@ -35,7 +36,8 @@ export interface BootOptions {
  *     postMessages (same-origin + namespaced) and re-apply them with no reload;
  *  4. mount under StrictMode → QueryClientProvider → Router → AuthProvider,
  *     using MemoryRouter in preview (served off a non-storefront path) and
- *     BrowserRouter live.
+ *     BrowserRouter live;
+ *  5. reset the window scroll on every forward route change (<ScrollToTop />).
  *
  * The theme keeps its own presentation: import "./index.css" and pass its route
  * tree as `children`.
@@ -79,7 +81,15 @@ export function bootStorefront({ children, rootId = "root" }: BootOptions): void
   const mount = document.getElementById(rootId);
   if (!mount) throw new Error(`bootStorefront: #${rootId} not found`);
 
-  const tree = <AuthProvider>{children}</AuthProvider>;
+  // <ScrollToTop /> sits INSIDE the router (it reads useLocation) and above the
+  // theme's routes, so every theme gets scroll reset on navigation for free —
+  // an SPA never reloads the document, so nothing else resets the offset.
+  const tree = (
+    <AuthProvider>
+      <ScrollToTop />
+      {children}
+    </AuthProvider>
+  );
 
   createRoot(mount).render(
     <StrictMode>
