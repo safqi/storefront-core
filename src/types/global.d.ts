@@ -148,6 +148,14 @@ declare global {
     apps?: InstalledApp[];
     /** True only when served by the admin theme-builder preview iframe. */
     preview?: boolean;
+    /** Product-share referral terms; null when the store's program is off. */
+    REFERRAL?: {
+      reward_type: "cashback" | "points";
+      reward_mode: "percent" | "fixed";
+      reward_value: number;
+      max_reward_per_order: number | null;
+      attribution_days: number;
+    } | null;
     [key: string]: unknown;
   }
 

@@ -119,6 +119,8 @@ export async function addCartItem(payload: {
   fitness_package?: string | null;
   /** Buyer-supplied custom input values keyed by field key. */
   personalization?: Record<string, string> | null;
+  /** Product-share referral code — pass `referralFor(product.slug)`. */
+  ref?: string | null;
 }): Promise<Cart> {
   const { data } = await axios.post("cart/items", payload);
   return unwrap<Cart>(data);
@@ -331,6 +333,8 @@ export async function checkout(
     shipping_method?: string | null;
     /** Loyalty points to redeem; bounded server-side by balance + program caps. */
     redeem_points?: number | null;
+    /** Spend the shopper's store credit (cashback), as much as the order allows. */
+    use_credit?: boolean;
     /** 'cod', 'bank_transfer', or an online gateway slug from fetchPaymentMethods. */
     payment_method: string;
   } & Partial<BankTransferProof>,
@@ -492,6 +496,8 @@ export const commerceKeys = {
   orders: ["orders"] as const,
   order: (id: number) => ["order", id] as const,
   points: ["points"] as const,
+  referral: ["referral"] as const,
+  credit: ["credit"] as const,
   downloads: ["downloads"] as const,
   memberships: ["memberships"] as const,
   shippingOptions: (addressId: number) =>

@@ -5,6 +5,9 @@ import laravel from "laravel-vite-plugin";
 import { fileURLToPath, URL } from "node:url";
 import http from "node:http";
 import https from "node:https";
+import { safqiIcons, type IconBundleOptions } from "./vite/icons";
+
+export { safqiIcons, type IconBundleOptions };
 
 /**
  * Fetch the storefront bootstrap payload (the window.appConfig twin) from a
@@ -101,6 +104,12 @@ export interface ThemeConfigOptions {
    * its flat contents to public/build/themes/{slug}.
    */
   buildDirectory?: string;
+  /**
+   * Bundle the icons the theme uses into the build instead of fetching them
+   * from the Iconify API at runtime (see ./vite/icons.ts). On by default;
+   * pass options to scan extra paths, or `false` to opt out.
+   */
+  icons?: IconBundleOptions | false;
   /** Extra Vite config merged over the preset (plugins are concatenated). */
   extend?: UserConfig;
 }
@@ -122,6 +131,7 @@ export function defineThemeConfig(opts: ThemeConfigOptions) {
     input = "src/main.tsx",
     publicDirectory = "../../public",
     buildDirectory = `build/themes/${slug}`,
+    icons = {},
     extend,
   } = opts;
   const themeDir = fileURLToPath(new URL(".", rootUrl));
@@ -177,6 +187,7 @@ export function defineThemeConfig(opts: ThemeConfigOptions) {
           ]
         : []),
       ...(standalonePreview ? [storefrontConfigInjector(storeOrigin!)] : []),
+      ...(icons !== false ? [safqiIcons({ themeDir, entry: input, options: icons })] : []),
       ...extraPlugins,
     ],
     resolve: {
@@ -192,6 +203,10 @@ export function defineThemeConfig(opts: ThemeConfigOptions) {
         "react-dom",
         "react-router-dom",
         "@tanstack/react-query",
+        // Iconify keeps its icon storage + custom loaders in module state: the
+        // icons plugin registers on one copy, so the core's <Icon> must render
+        // with that same copy or every icon goes back to the network.
+        "@iconify/react",
         ...(extend?.resolve?.dedupe ?? []),
       ],
       alias: {

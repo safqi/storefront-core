@@ -27,6 +27,26 @@ import { defineThemeConfig } from "@safqi/storefront-core/vite";
 export default defineThemeConfig({ slug: "basic", rootUrl: import.meta.url });
 ```
 
+### Icons are bundled at build time
+
+`<Icon>` / `<SolarIcon>` render with `@iconify/react`, which would otherwise fetch every glyph from `api.iconify.design` at runtime. The preset includes the `safqi:icons` plugin, which runs on by default. It:
+
+- scans the theme's `src/` and this package's `dist/` for icon names (`solar:…`, `logos:…`, `mdi:…`, and bare Solar names such as `bell-linear`);
+- keeps only the names that exist in the locally installed `@iconify-json/*` sets (shipped as dependencies of this package);
+- emits one hashed, same-origin chunk per set and registers a custom Iconify loader that serves from it. The chunk starts downloading in parallel with the app boot and stays off the main bundle's critical path.
+
+Only a name the scan never saw (for example, one typed in by a merchant) still goes to the Iconify API, one icon at a time. When icon names come from your backend as data, add those paths to the scan:
+
+```ts
+defineThemeConfig({
+  slug: "basic",
+  rootUrl: import.meta.url,
+  icons: { scan: ["../../app/Enums", "../../app/Apps"] }, // or `icons: false` to opt out
+});
+```
+
+A `[safqi:icons] bundled solar 192, logos 8, …` line in the build output confirms what shipped.
+
 ```tsx
 // src/main.tsx
 import "./index.css";

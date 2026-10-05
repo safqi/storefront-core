@@ -24,6 +24,7 @@ export * from "./lib/appConfig";
 // --- data / API ---
 export * from "./lib/api";
 export * from "./lib/commerce";
+export * from "./lib/referral";
 export { queryClient } from "./lib/queryClient";
 
 // --- auth + cart ---

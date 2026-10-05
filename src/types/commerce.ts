@@ -89,6 +89,8 @@ export interface Cart {
    * when absent.
    */
   requires_shipping?: boolean;
+  /** The shopper's store credit (cashback), spendable at checkout via `use_credit`. */
+  credit_balance?: string;
 }
 
 export interface Address {
@@ -253,6 +255,8 @@ export interface Order {
   discounts?: CartDiscount[];
   /** Loyalty points spent on this order (their currency value is in `amount`). */
   points_redeemed?: number;
+  /** Store credit spent at checkout — already inside `amount`. */
+  credit_used?: string;
   /** Loyalty points earned once the order reaches the earning status. */
   points_earned?: number;
   shipping_app?: string | null;

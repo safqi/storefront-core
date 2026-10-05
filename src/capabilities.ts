@@ -110,6 +110,8 @@ export const ENDPOINTS: EndpointGroup[] = [
       { path: "orders/{id}", method: "GET", summary: "Order detail", helper: "fetchOrder", auth: true },
       { path: "account/downloads", method: "GET", summary: "Digital deliverables", helper: "fetchDownloads", auth: true },
       { path: "account/memberships", method: "GET", summary: "Fitness/membership grants", helper: "fetchMemberships", auth: true },
+      { path: "account/referral", method: "GET", summary: "Personal product-share ?ref= code, program terms, referral earnings", helper: "fetchReferral", auth: true },
+      { path: "account/credit", method: "GET", summary: "Store credit (cashback) balance + ledger; spend with checkout use_credit", helper: "fetchCredit", auth: true },
     ],
   },
   {

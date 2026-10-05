@@ -6,6 +6,7 @@ import axios from "axios";
 import { initCurrency } from "./lib/currency";
 import { getApiUrl, getAppDir, getAppLang, getIsPreview } from "./lib/appConfig";
 import { applyThemeSettings } from "./lib/themeSettings";
+import { captureReferral } from "./lib/referral";
 import { queryClient } from "./lib/queryClient";
 import { AuthProvider } from "./lib/auth";
 import { ScrollToTop } from "./components/ScrollToTop";
@@ -65,6 +66,10 @@ export function bootStorefront({ children, rootId = "root" }: BootOptions): void
   root.lang = getAppLang();
 
   applyThemeSettings();
+
+  // Remember a product-share `?ref=` before any route renders, so the product
+  // page can attribute the add-to-cart. Every theme gets it via this boot.
+  captureReferral();
 
   const preview = getIsPreview();
   if (preview) {
