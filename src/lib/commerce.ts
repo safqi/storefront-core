@@ -483,7 +483,9 @@ export function redeemablePreview(
 
   const maxValue =
     Math.round(subtotal * (program.redeem_max_percent / 100) * 100) / 100;
-  const maxPointsByValue = Math.floor(maxValue / pointValue);
+  // Round before flooring (as the server does): a converted point value like
+  // 0.0008 makes 20 / 0.0008 land on 24999.999… and drop a whole point.
+  const maxPointsByValue = Math.floor(Math.round((maxValue / pointValue) * 1e6) / 1e6);
   const points = Math.max(0, Math.min(balance, maxPointsByValue));
   const value = Math.round(points * pointValue * 100) / 100;
   return { points, value };

@@ -25,6 +25,10 @@ export interface LinePersonalization {
 export interface CartItem {
   id: number;
   product_id: number;
+  /** Whether a shared product link (referral) is attributed to this line. */
+  referred?: boolean;
+  /** The friend discount this line gets through that link ("0.00" = none). */
+  referral_discount?: string;
   product_variant_id: number | null;
   name: string;
   image: string | null;

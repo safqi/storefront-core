@@ -1,6 +1,13 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { buildShareUrl, captureReferral, referralFor } from "./referral";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+// i18n (used by friendDiscountText) resolves the language at module load.
+vi.hoisted(() => {
+  (window as any).appConfig = { APP_LANG: "en" };
+});
+
+import { buildShareUrl, captureReferral, friendDiscountText, referralFor } from "./referral";
+import type { ReferralProgram } from "./referral";
 
 const DAY = 24 * 60 * 60 * 1000;
 const loc = (pathname: string, search = "") => ({ pathname, search });
@@ -49,5 +56,34 @@ describe("referral attribution", () => {
       "https://shop.test/products/x?a=1&ref=NEW22222",
     );
     expect(buildShareUrl("https://shop.test/products/x?ref=OLD11111", null)).toBe("https://shop.test/products/x");
+  });
+});
+
+describe("friendDiscountText", () => {
+  const program = (friend_discount: ReferralProgram["friend_discount"]): ReferralProgram => ({
+    reward_type: "cashback",
+    reward_mode: "percent",
+    reward_value: 5,
+    max_reward_per_order: null,
+    attribution_days: 30,
+    friend_discount,
+  });
+
+  it("is null when the friend gets nothing", () => {
+    expect(friendDiscountText(null, "$", "sharer")).toBeNull();
+    expect(friendDiscountText(program(null), "$", "sharer")).toBeNull();
+    expect(friendDiscountText(program({ mode: "percent", value: 0, max: null, first_order_only: false }), "$", "friend")).toBeNull();
+  });
+
+  it("words a percentage for the sharer and for the friend", () => {
+    const p = program({ mode: "percent", value: 5, max: null, first_order_only: false });
+    expect(friendDiscountText(p, "$", "sharer")).toBe("and your friend gets 5% off the product");
+    expect(friendDiscountText(p, "$", "friend")).toBe("You get 5% off through your friend's link");
+  });
+
+  it("adds the currency to a fixed amount and flags first-order-only", () => {
+    const text = friendDiscountText(program({ mode: "fixed", value: 3, max: null, first_order_only: true }), "$", "friend");
+    expect(text).toContain("$");
+    expect(text).toMatch(/\(first order\)$/);
   });
 });

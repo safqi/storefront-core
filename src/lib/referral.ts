@@ -1,4 +1,6 @@
 import axios from "axios";
+import { formatMoney } from "./format";
+import { t } from "./i18n";
 
 /**
  * Customer product-share referrals.
@@ -31,6 +33,36 @@ export interface ReferralProgram {
   reward_value: number;
   max_reward_per_order: number | null;
   attribution_days: number;
+  /** What the FRIEND who buys through a shared link gets, or null for nothing. */
+  friend_discount?: FriendDiscount | null;
+}
+
+/** The friend's discount on a referred product line (money, store currency). */
+export interface FriendDiscount {
+  mode: "percent" | "fixed";
+  value: number;
+  max: number | null;
+  first_order_only: boolean;
+}
+
+/**
+ * The friend-discount sentence, or null when the program gives the friend
+ * nothing. `"sharer"` is the line under the share button ("your friend gets
+ * 5% off"); `"friend"` is the badge shown to someone who opened a shared link.
+ */
+export function friendDiscountText(
+  program: ReferralProgram | null | undefined,
+  currency: string,
+  perspective: "sharer" | "friend",
+): string | null {
+  const fd = program?.friend_discount;
+  if (!fd || !(fd.value > 0)) return null;
+
+  const value = fd.mode === "fixed" ? `${formatMoney(fd.value)} ${currency}`.trim() : String(fd.value);
+  const key = `referral.${perspective === "sharer" ? "friendGets" : "youGet"}${fd.mode === "fixed" ? "Fixed" : "Percent"}`;
+  const text = t(key, { value });
+
+  return fd.first_order_only ? `${text} ${t("referral.firstOrderOnly")}` : text;
 }
 
 export function getReferralProgram(): ReferralProgram | null {
