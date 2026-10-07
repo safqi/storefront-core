@@ -61,11 +61,12 @@ export default function SwipeRow({
       ref={ref}
       role="group"
       aria-label={ariaLabel}
-      // `touch-pan-x` keeps vertical page scrolling working when the gesture
-      // starts on the rail — without it a downward swipe on a product shelf
-      // traps the page.
+      // `touch-manipulation` (pan-x pan-y pinch-zoom) keeps BOTH axes native:
+      // the rail pans sideways and a vertical swipe starting on it still
+      // scrolls the page. `touch-pan-x` alone forbids vertical panning here,
+      // so a downward swipe on a product shelf stutters/traps the page.
       className={[
-        "sf-swipe-row flex touch-pan-x overflow-x-auto overscroll-x-contain",
+        "sf-swipe-row flex touch-manipulation overflow-x-auto overscroll-x-contain",
         gap,
         snap ? "snap-x snap-mandatory" : "",
         hideScrollbar ? "sf-no-scrollbar" : "",
