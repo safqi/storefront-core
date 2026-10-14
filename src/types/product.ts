@@ -32,6 +32,13 @@ export interface StorefrontProduct {
   image: string | null;
   in_stock: boolean;
   promotion?: string | null;
+  /**
+   * Lifetime units sold, for a "sold N times" badge. `null` whenever the store
+   * hides it (its sold-badge setting is off, or the product is below the
+   * store's minimum) — render the badge only for a number. Optional so themes
+   * built against an older API keep compiling.
+   */
+  sold_count?: number | null;
 }
 
 // ─── Product detail (`/api/v1/products/{slug}`) ──────────────────────────────
@@ -153,6 +160,13 @@ export interface StorefrontProductDetail {
   personalization_fields: StorefrontPersonalizationField[];
   /** Whether customers may ask questions on this product (Q&A form shown). */
   questions_enabled: boolean;
+  /**
+   * Lifetime units sold, for a "sold N times" badge. `null` whenever the store
+   * hides it (its sold-badge setting is off, or the product is below the
+   * store's minimum) — render the badge only for a number. Optional so themes
+   * built against an older API keep compiling.
+   */
+  sold_count?: number | null;
   /** Key/value specifications (electronics). */
   specifications: StorefrontSpecification[];
   price: string;

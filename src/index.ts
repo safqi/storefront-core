@@ -35,6 +35,7 @@ export { useCart } from "./lib/useCart";
 export { t, lang } from "./lib/i18n";
 export type { Dict } from "./lib/i18n";
 export { formatMoney, safeCurrency, currencySymbol, formatPrice } from "./lib/format";
+export { soldCountLabel } from "./lib/sales";
 export {
   availableCurrencies,
   canSwitchCurrency,
