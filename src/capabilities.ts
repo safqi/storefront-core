@@ -7,7 +7,7 @@
  */
 
 /** Semver of this core; recorded by themes so drift against basic is detectable. */
-export const CORE_VERSION = "1.7.0";
+export const CORE_VERSION = "1.10.0";
 
 export interface EndpointSpec {
   /** Path relative to the tenant API base (window.appConfig.API_URL, .../api/v1). */
@@ -112,6 +112,19 @@ export const ENDPOINTS: EndpointGroup[] = [
       { path: "account/memberships", method: "GET", summary: "Fitness/membership grants", helper: "fetchMemberships", auth: true },
       { path: "account/referral", method: "GET", summary: "Personal product-share ?ref= code, program terms, referral earnings", helper: "fetchReferral", auth: true },
       { path: "account/credit", method: "GET", summary: "Store credit (cashback) balance + ledger; spend with checkout use_credit", helper: "fetchCredit", auth: true },
+    ],
+  },
+  {
+    group: "AI assistant (chat)",
+    base: "v1",
+    endpoints: [
+      { path: "assistant/config", method: "GET", summary: "Widget config (also window.appConfig.ASSISTANT); null when off", helper: "getAssistantConfig" },
+      { path: "assistant/conversations", method: "POST", summary: "Resume/start the thread; guests get X-Assistant-Token", helper: "startAssistantConversation" },
+      { path: "assistant/conversations/current", method: "GET", summary: "Open thread + history" },
+      { path: "assistant/conversations/{id}/messages", method: "POST", summary: "Send a message; reply streams as SSE events", helper: "streamAssistantMessage" },
+      { path: "assistant/conversations/{id}", method: "DELETE", summary: "Start over", helper: "resetAssistantConversation" },
+      { path: "assistant/messages/{id}/feedback", method: "POST", summary: "Thumbs up/down on a reply", helper: "sendAssistantFeedback" },
+      { path: "assistant/proposals/confirm", method: "POST", summary: "Confirm the assistant's checkout card → places the order", helper: "confirmAssistantProposal", auth: true },
     ],
   },
   {

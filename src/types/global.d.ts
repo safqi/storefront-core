@@ -156,6 +156,8 @@ declare global {
       max_reward_per_order: number | null;
       attribution_days: number;
     } | null;
+    /** Storefront AI assistant widget config; null when the store doesn't run it. */
+    ASSISTANT?: import("./assistant").AssistantConfig | null;
     [key: string]: unknown;
   }
 

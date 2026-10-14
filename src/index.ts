@@ -31,6 +31,11 @@ export { queryClient } from "./lib/queryClient";
 export { AuthProvider, useAuth } from "./lib/auth";
 export { useCart } from "./lib/useCart";
 
+// --- storefront AI assistant (headless) ---
+export * from "./lib/assistant";
+export { useAssistant } from "./lib/useAssistant";
+export type { UseAssistantOptions } from "./lib/useAssistant";
+
 // --- i18n + formatting + status ---
 export { t, lang } from "./lib/i18n";
 export type { Dict } from "./lib/i18n";
@@ -108,3 +113,4 @@ export type { Remaining } from "./sections/countdown";
 export * from "./types/product";
 export * from "./types/catalog";
 export * from "./types/commerce";
+export * from "./types/assistant";
