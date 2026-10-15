@@ -58,6 +58,11 @@ Example reskin — flatter corners everywhere, one edit:
 | `.rich-text` | server-sanitized HTML (descriptions) |
 | `.sf-lightbox` + `__backdrop` / `__bar` / `__counter` / `__btn` / `__frame` / `__img` (`.is-zoomed`) / `__nav--prev` / `__nav--next` / `__thumbs` / `__thumb` (`.is-active`) | full-screen photo viewer (`<Lightbox />`) |
 | `.sf-dialog` + `__backdrop` / `__panel` / `__icon` (`.is-destructive`) / `__title` / `__message` / `__actions` / `__action` (`--danger`) | confirmation modal (`<ConfirmDialog />`) |
+| `.sf-stars` + `--sm` / `--md` / `--lg`, `__row` / `__on` / `__off` / `__half` / `__value` / `__count` | read-only star rating (`<RatingStars />`) |
+| `.sf-reviewer` (`--hidden` = blurred placeholder) | reviewer name (`<ReviewerName />`) |
+| `.sf-review-card__*` (on top of `.sf-testimonial*`) | «تقييمات العملاء» section cards (`customer_reviews`) |
+| `.sf-reviews-block` + `__summary` / `__bars` / `__form` / `__list` / `__item` / …, `.sf-star-picker` | product-page reviews block (`<ProductReviews />`) |
+| `.sf-report` + `__form` / `__field` / `__error` | report-store dialog (`<ReportStoreDialog />`, on top of `.sf-dialog*`) |
 
 Modifiers stack: `class="sf-btn sf-btn--primary sf-btn--lg sf-btn--block"`.
 

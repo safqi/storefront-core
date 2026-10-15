@@ -115,6 +115,13 @@ export interface Address {
 
 export interface OrderItem {
   product_name: string;
+  product_id?: number | null;
+  /** Product page slug — set only when the line can be reviewed. */
+  product_slug?: string | null;
+  /** Order delivered + store accepts reviews: show «قيّم المنتج» (→ /products/{slug}#reviews). */
+  can_review?: boolean;
+  /** The customer already rated this product (the action becomes «تعديل تقييمك»). */
+  reviewed?: boolean;
   quantity: number;
   price: string;
   total: string;

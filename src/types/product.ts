@@ -39,6 +39,13 @@ export interface StorefrontProduct {
    * built against an older API keep compiling.
    */
   sold_count?: number | null;
+  /**
+   * Verified-buyer rating summary (1 decimal) and number of ratings. Both `null`
+   * when the store hides ratings in this placement or nobody rated it yet —
+   * pass straight to `<RatingStars value={rating_avg} count={rating_count}/>`.
+   */
+  rating_avg?: number | null;
+  rating_count?: number | null;
 }
 
 // ─── Product detail (`/api/v1/products/{slug}`) ──────────────────────────────
@@ -160,6 +167,8 @@ export interface StorefrontProductDetail {
   personalization_fields: StorefrontPersonalizationField[];
   /** Whether customers may ask questions on this product (Q&A form shown). */
   questions_enabled: boolean;
+  /** Whether customers may review products in this store (render `<ProductReviews/>`). */
+  reviews_enabled?: boolean;
   /**
    * Lifetime units sold, for a "sold N times" badge. `null` whenever the store
    * hides it (its sold-badge setting is off, or the product is below the
@@ -167,6 +176,13 @@ export interface StorefrontProductDetail {
    * built against an older API keep compiling.
    */
   sold_count?: number | null;
+  /**
+   * Verified-buyer rating summary (1 decimal) and number of ratings. Both `null`
+   * when the store hides ratings in this placement or nobody rated it yet —
+   * pass straight to `<RatingStars value={rating_avg} count={rating_count}/>`.
+   */
+  rating_avg?: number | null;
+  rating_count?: number | null;
   /** Key/value specifications (electronics). */
   specifications: StorefrontSpecification[];
   price: string;

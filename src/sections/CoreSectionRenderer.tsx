@@ -12,6 +12,7 @@ import {
   VideoSection,
 } from "./ContentSections";
 import { FeaturedProductSection } from "./FeaturedProductSection";
+import { CustomerReviewsSection } from "./CustomerReviewsSection";
 import { AppSection, parseAppSectionType } from "./AppSection";
 
 type SectionComponent = ComponentType<{ section: AppHomepageSection }>;
@@ -31,6 +32,7 @@ export const CORE_SECTIONS: Record<string, SectionComponent> = {
   divider: DividerSection,
   features_strip: FeaturesStripSection,
   testimonials: TestimonialsSection,
+  customer_reviews: CustomerReviewsSection,
   featured_product: FeaturedProductSection,
   countdown_offer: CountdownOfferSection,
   newsletter: NewsletterSection,

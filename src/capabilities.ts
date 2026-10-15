@@ -7,7 +7,7 @@
  */
 
 /** Semver of this core; recorded by themes so drift against basic is detectable. */
-export const CORE_VERSION = "1.10.0";
+export const CORE_VERSION = "1.12.0";
 
 export interface EndpointSpec {
   /** Path relative to the tenant API base (window.appConfig.API_URL, .../api/v1). */
@@ -45,6 +45,17 @@ export const ENDPOINTS: EndpointGroup[] = [
       { path: "categories", method: "GET", summary: "Category tree", helper: "fetchCategories" },
       { path: "brands", method: "GET", summary: "Brand list", helper: "fetchBrands" },
       { path: "filters", method: "GET", summary: "Facets for the filter drawer", helper: "fetchFilters" },
+    ],
+  },
+  {
+    group: "Reviews",
+    base: "v1",
+    endpoints: [
+      { path: "products/{slug}/reviews", method: "GET", summary: "Published reviews + summary {avg,count,distribution}; with a customer token also can_review + my_review", helper: "fetchProductReviews" },
+      { path: "products/{slug}/reviews", method: "POST", summary: "Create/update the caller's review {rating 1-5, comment?, hide_name?} — delivered-order buyers only", helper: "submitProductReview", auth: true },
+      { path: "products/{slug}/reviews", method: "DELETE", summary: "Delete the caller's review", helper: "deleteProductReview", auth: true },
+      { path: "reviews", method: "GET", summary: "Store-wide published reviews feed (product, min_rating, with_comment, limit, sort)", helper: "fetchReviews" },
+      { path: "store/reports", method: "POST", summary: "Report this store to the platform {reason, details, order_number?}; 409 when an open report exists", helper: "reportStore", auth: true },
     ],
   },
   {
@@ -163,6 +174,7 @@ export const SECTION_TYPES = [
   { type: "divider", name: "Divider", description: "Rule or blank space between sections.", core: true },
   { type: "features_strip", name: "Features strip", description: "Icon + label trust badges.", core: true },
   { type: "testimonials", name: "Testimonials", description: "Merchant-written customer quotes.", core: true },
+  { type: "customer_reviews", name: "Customer reviews", description: "Real verified-buyer product reviews (GET /reviews); hidden reviewer names render blurred.", core: true },
   { type: "featured_product", name: "Featured product", description: "One hand-picked product, large.", core: true },
   { type: "countdown_offer", name: "Countdown offer", description: "Deal block with a live timer; hides itself once expired.", core: true },
   { type: "newsletter", name: "Newsletter", description: "Email/phone capture posting to /api/v1/subscribe.", core: true },

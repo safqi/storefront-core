@@ -24,7 +24,9 @@ export type ProductSort =
   | "price_desc"
   | "popular"
   /** Units sold, cancelled/refunded orders excluded. */
-  | "best_selling";
+  | "best_selling"
+  /** Highest average published rating first (unrated last). */
+  | "top_rated";
 
 /** Filters accepted by the products listing endpoint. */
 export interface ProductQuery {

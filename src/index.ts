@@ -25,6 +25,7 @@ export * from "./lib/appConfig";
 export * from "./lib/api";
 export * from "./lib/commerce";
 export * from "./lib/referral";
+export * from "./lib/reviews";
 export { queryClient } from "./lib/queryClient";
 
 // --- auth + cart ---
@@ -93,6 +94,12 @@ export type { LightboxProps } from "./components/Lightbox";
 export { default as ConfirmDialog } from "./components/ConfirmDialog";
 export type { ConfirmDialogProps } from "./components/ConfirmDialog";
 export { default as ScrollToTop } from "./components/ScrollToTop";
+export { RatingStars } from "./components/RatingStars";
+export type { RatingStarsProps } from "./components/RatingStars";
+export { ReviewerName } from "./components/ReviewerName";
+export { ProductReviews } from "./components/ProductReviews";
+export { ReportStoreDialog } from "./components/ReportStoreDialog";
+export type { ReportStoreDialogProps } from "./components/ReportStoreDialog";
 
 // --- navigation / viewer logic (the framework-free halves) ---
 export { shouldScrollToTop } from "./lib/scrollTop";
@@ -102,6 +109,7 @@ export { stepIndex, swipeStep, keyAction, clampPan, SWIPE_THRESHOLD } from "./li
 // --- homepage sections rendered by the core (a theme's SectionRenderer
 //     delegates its default arm here; see CoreSectionRenderer) ---
 export { CoreSectionRenderer, CORE_SECTION_TYPES } from "./sections/CoreSectionRenderer";
+export { CustomerReviewsSection, reviewFeedQuery } from "./sections/CustomerReviewsSection";
 export { AppSection, parseAppSectionType } from "./sections/AppSection";
 export type { AppSectionItem, AppSectionPayload } from "./sections/AppSection";
 export { parseVideo, ASPECTS } from "./sections/video";
@@ -114,3 +122,4 @@ export * from "./types/product";
 export * from "./types/catalog";
 export * from "./types/commerce";
 export * from "./types/assistant";
+export * from "./types/review";
