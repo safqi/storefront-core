@@ -12,13 +12,19 @@ import {
   startAssistantConversation,
   streamAssistantMessage,
 } from "./assistant";
-import type { AssistantConversation, AssistantEvent, AssistantProposal } from "../types/assistant";
+import type { AssistantConversation, AssistantEvent, AssistantPageContext, AssistantProposal } from "../types/assistant";
 
 export interface UseAssistantOptions {
   /** A guest asked for a customer-only action (cart/orders/checkout) — open your sign-in UI. */
   onLoginRequired?: (message: string) => void;
   /** Called after the shopper confirmed a checkout card. Redirect to `payment.redirect_url` when present. */
   onOrderPlaced?: (order: Awaited<ReturnType<typeof confirmAssistantProposal>>) => void;
+  /**
+   * The page the shopper is on — sent with every message so «هذا المنتج» means
+   * it. Typically `assistantContextFromLocation(pathname, search)`. Ignored
+   * when the merchant switched `page_context` off.
+   */
+  context?: AssistantPageContext | null;
 }
 
 /**
@@ -73,14 +79,17 @@ export function useAssistant(options: UseAssistantOptions = {}) {
   );
 
   const send = useCallback(
-    async (text: string) => {
+    /** `context` overrides the hook's `options.context` for this one message; pass null to send none. */
+    async (text: string, context?: AssistantPageContext | null) => {
       const message = text.trim().slice(0, config?.max_message_length ?? 1000);
       if (!message || !conversation || state.busy) return;
+
+      const page = config?.capabilities?.page_context ? (context === undefined ? optsRef.current.context : context) : null;
 
       dispatch({ type: "send", text: message });
       abortRef.current = new AbortController();
       try {
-        await streamAssistantMessage(conversation.id, message, handleEvent, abortRef.current.signal);
+        await streamAssistantMessage(conversation.id, message, handleEvent, abortRef.current.signal, page ?? null);
       } catch (e: any) {
         if (e?.name !== "AbortError") dispatch({ type: "fail", message: "انقطع الاتصال. حاول مرة أخرى." });
       }

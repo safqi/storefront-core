@@ -2,6 +2,7 @@ import axios from "axios";
 import type { Order } from "../types/commerce";
 import type {
   AssistantConfig,
+  AssistantPageContext,
   AssistantConversation,
   AssistantEvent,
   AssistantMessage,
@@ -125,8 +126,15 @@ export async function streamAssistantMessage(
   message: string,
   onEvent: (event: AssistantEvent) => void,
   signal?: AbortSignal,
+  /** The page the shopper is asking from (see assistantContextFromLocation). */
+  context?: AssistantPageContext | null,
 ): Promise<void> {
   const auth = axios.defaults.headers.common?.Authorization as string | undefined;
+  // The shopper's chosen display currency (set by the currency switcher on
+  // axios). fetch() doesn't inherit axios headers, and without it the server
+  // prices the reply in the store's own currency while the cards on the page
+  // show the converted one.
+  const currency = axios.defaults.headers.common?.["X-Currency"] as string | undefined;
   const base = getApiUrl().replace(/\/$/, "");
 
   const res = await fetch(`${base}/assistant/conversations/${conversationId}/messages`, {
@@ -136,9 +144,10 @@ export async function streamAssistantMessage(
       "Content-Type": "application/json",
       Accept: "text/event-stream",
       ...(auth ? { Authorization: auth } : {}),
+      ...(currency ? { "X-Currency": currency } : {}),
       ...guestHeaders(),
     },
-    body: JSON.stringify({ message }),
+    body: JSON.stringify(context ? { message, context } : { message }),
   });
 
   if (!res.ok || !res.body) {
@@ -164,6 +173,65 @@ export async function streamAssistantMessage(
     if (done) break;
     parse(decoder.decode(value, { stream: true })).forEach(onEvent);
   }
+}
+
+// ── Page context (pure, unit-tested) ────────────────────────────────────
+
+const clip = (v: string | null | undefined, max: number) => {
+  const t = (v ?? "").trim();
+  return t ? t.slice(0, max) : undefined;
+};
+
+/**
+ * Which page the shopper is on, from the storefront URL — the shared route
+ * shapes of every official theme:
+ *
+ *   /products/:slug                        → { type: "product", slug }
+ *   /search?search=…&category=…&brand=…    → { type: "search", … }   (a lone
+ *     ?category= / ?brand= with no query reads as that category / brand page)
+ *
+ * Anything else → null (no context). The server re-resolves the hint against
+ * the store's own catalog, so a stale or hand-edited URL is harmless.
+ */
+export function assistantContextFromLocation(pathname: string, search = ""): AssistantPageContext | null {
+  const path = pathname.replace(/\/+$/, "");
+
+  const product = path.match(/^\/products\/([^/]+)$/);
+  if (product) {
+    let slug = product[1];
+    try {
+      slug = decodeURIComponent(slug);
+    } catch {
+      /* keep it raw */
+    }
+    return { type: "product", slug: slug.slice(0, 191) };
+  }
+
+  if (path === "/search") {
+    const params = new URLSearchParams(search);
+    const query = clip(params.get("search") ?? params.get("q"), 100);
+    const category = clip(params.get("category"), 191);
+    const brand = clip(params.get("brand"), 191);
+
+    if (!query && category && !brand) return { type: "category", slug: category };
+    if (!query && brand && !category) return { type: "brand", slug: brand };
+    if (!query && !category && !brand) return null;
+
+    return {
+      type: "search",
+      ...(query ? { search: query } : {}),
+      ...(category ? { category } : {}),
+      ...(brand ? { brand } : {}),
+    };
+  }
+
+  return null;
+}
+
+/** The quick questions the merchant's config offers for this page, or []. */
+export function assistantContextPrompts(config: AssistantConfig | null, context: AssistantPageContext | null): string[] {
+  if (!config?.capabilities?.page_context || !context) return [];
+  return config.context_prompts?.[context.type] ?? [];
 }
 
 // ── Pure state machine (unit-tested) ────────────────────────────────────
@@ -249,6 +317,12 @@ export function assistantReducer(state: AssistantState, action: AssistantAction)
             const seen = new Set((m.cards?.products ?? []).map((p) => p.id));
             const fresh = e.data.products.filter((p) => !seen.has(p.id));
             return { ...m, cards: { ...m.cards, products: [...(m.cards?.products ?? []), ...fresh] } };
+          });
+        case "coupons":
+          return patchReply(state, (m) => {
+            const seen = new Set((m.cards?.coupons ?? []).map((c) => c.code));
+            const fresh = e.data.coupons.filter((c) => !seen.has(c.code));
+            return { ...m, cards: { ...m.cards, coupons: [...(m.cards?.coupons ?? []), ...fresh] } };
           });
         case "proposal":
           return patchReply(state, (m) => ({ ...m, cards: { ...m.cards, proposal: e.data } }));

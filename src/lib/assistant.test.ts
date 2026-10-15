@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { assistantReducer, createSseParser, initialAssistantState } from "./assistant";
-import type { AssistantEvent } from "../types/assistant";
+import {
+  assistantContextFromLocation,
+  assistantContextPrompts,
+  assistantReducer,
+  createSseParser,
+  initialAssistantState,
+} from "./assistant";
+import type { AssistantConfig, AssistantEvent } from "../types/assistant";
 
 const ev = (event: AssistantEvent) => ({ type: "event" as const, event });
 
@@ -74,5 +80,63 @@ describe("assistantReducer", () => {
 
     expect(assistantReducer(loaded, ev({ event: "delta", data: { text: "x" } })).messages[0].content).toBe("أهلاً");
     expect(assistantReducer(loaded, { type: "feedback", id: 7, rating: "up" }).messages[0].feedback).toBe("up");
+  });
+});
+
+describe("assistantContextFromLocation", () => {
+  it("reads a product page, decoding Arabic slugs", () => {
+    expect(assistantContextFromLocation("/products/running-shoe")).toEqual({ type: "product", slug: "running-shoe" });
+    expect(assistantContextFromLocation("/products/%D8%AD%D8%B0%D8%A7%D8%A1/")).toEqual({ type: "product", slug: "حذاء" });
+  });
+
+  it("reads search pages, and a lone filter as that category / brand", () => {
+    expect(assistantContextFromLocation("/search", "?search=%20جري%20&category=shoes")).toEqual({
+      type: "search",
+      search: "جري",
+      category: "shoes",
+    });
+    expect(assistantContextFromLocation("/search", "?category=shoes")).toEqual({ type: "category", slug: "shoes" });
+    expect(assistantContextFromLocation("/search", "?brand=nike&sort=price")).toEqual({ type: "brand", slug: "nike" });
+    expect(assistantContextFromLocation("/search", "?category=shoes&brand=nike")).toEqual({
+      type: "search",
+      category: "shoes",
+      brand: "nike",
+    });
+  });
+
+  it("clips long queries and returns null for pages without context", () => {
+    expect(assistantContextFromLocation("/search", `?search=${"a".repeat(300)}`)?.search).toHaveLength(100);
+    expect(assistantContextFromLocation("/search")).toBeNull();
+    expect(assistantContextFromLocation("/")).toBeNull();
+    expect(assistantContextFromLocation("/cart")).toBeNull();
+    expect(assistantContextFromLocation("/products")).toBeNull();
+  });
+});
+
+describe("assistantContextPrompts", () => {
+  const config = {
+    capabilities: { page_context: true },
+    context_prompts: { product: ["فيه كوبون؟"] },
+  } as unknown as AssistantConfig;
+
+  it("picks the prompts for the page type", () => {
+    expect(assistantContextPrompts(config, { type: "product", slug: "x" })).toEqual(["فيه كوبون؟"]);
+    expect(assistantContextPrompts(config, { type: "search", search: "x" })).toEqual([]);
+  });
+
+  it("is empty with no context, no config, or page_context off", () => {
+    expect(assistantContextPrompts(config, null)).toEqual([]);
+    expect(assistantContextPrompts(null, { type: "product", slug: "x" })).toEqual([]);
+    const off = { ...config, capabilities: { page_context: false } } as unknown as AssistantConfig;
+    expect(assistantContextPrompts(off, { type: "product", slug: "x" })).toEqual([]);
+  });
+});
+
+describe("assistantReducer coupons", () => {
+  it("attaches coupon cards to the streaming reply without duplicates", () => {
+    let state = assistantReducer(initialAssistantState, { type: "send", text: "فيه كوبون؟" });
+    state = assistantReducer(state, ev({ event: "coupons", data: { coupons: [{ code: "OPEN10", discount: "10%" }] } }));
+    state = assistantReducer(state, ev({ event: "coupons", data: { coupons: [{ code: "OPEN10" }, { code: "VIP" }] } }));
+    expect(state.messages[1].cards?.coupons?.map((c) => c.code)).toEqual(["OPEN10", "VIP"]);
   });
 });

@@ -9,8 +9,57 @@ export interface AssistantConfig {
   suggested_prompts: string[];
   /** False = customers only; a guest must sign in before chatting. */
   guest_access: boolean;
-  capabilities: Record<"products" | "cart" | "orders" | "checkout" | "offers", boolean>;
+  capabilities: Record<AssistantCapability, boolean>;
+  /**
+   * Quick questions for the page the shopper is on, keyed by page type — only
+   * for abilities that are on. Null when the merchant switched `page_context` off.
+   */
+  context_prompts?: Partial<Record<AssistantPageType, string[]>> | null;
   max_message_length: number;
+}
+
+export type AssistantCapability =
+  | "products"
+  | "cart"
+  | "orders"
+  | "checkout"
+  | "offers"
+  /** Understands the page the shopper is on («هذا المنتج»). */
+  | "page_context"
+  /** Shares the coupon codes the merchant picked. Off by default. */
+  | "coupons";
+
+export type AssistantPageType = "product" | "category" | "brand" | "search";
+
+/**
+ * The storefront page a message is asked from — a hint the server re-resolves
+ * against the store's own catalog (never trusted as-is). Build it with
+ * assistantContextFromLocation().
+ */
+export interface AssistantPageContext {
+  type: AssistantPageType;
+  /** product / category / brand slug (or id). */
+  slug?: string;
+  /** search page: the free-text query and active filters (slugs). */
+  search?: string;
+  category?: string;
+  brand?: string;
+}
+
+/** A coupon the assistant may share (only ones the merchant picked, checked for this shopper). */
+export interface AssistantCoupon {
+  code: string;
+  name?: string;
+  description?: string;
+  /** "10%", a fixed amount, or "شحن مجاني". */
+  discount?: string | number;
+  max_discount?: number;
+  min_order?: number;
+  /** What it covers when it isn't the whole store ("منتجات محددة: …"). */
+  applies_to?: string;
+  first_order_only?: boolean;
+  /** YYYY-MM-DD */
+  ends_at?: string;
 }
 
 /** The checkout confirm card the assistant prepares (it never places the order itself). */
@@ -35,6 +84,7 @@ export interface AssistantProposal {
 /** What the transcript stores alongside a reply (also replayed from history). */
 export interface AssistantCards {
   products?: StorefrontProduct[];
+  coupons?: AssistantCoupon[];
   proposal?: AssistantProposal;
   login_required?: boolean;
   cart_updated?: boolean;
@@ -60,6 +110,7 @@ export type AssistantEvent =
   | { event: "tool"; data: { label: string } }
   | { event: "delta"; data: { text: string } }
   | { event: "products"; data: { products: StorefrontProduct[] } }
+  | { event: "coupons"; data: { coupons: AssistantCoupon[] } }
   | { event: "cart_updated"; data: { item_count: number } }
   | { event: "login_required"; data: { reason: string; message: string } }
   | { event: "proposal"; data: AssistantProposal }
