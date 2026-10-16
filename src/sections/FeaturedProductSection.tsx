@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { fetchProduct, queryKeys } from "../lib/api";
 import { formatMoney } from "../lib/format";
 import { t } from "../lib/i18n";
+import { titlePositionAttrs } from "../lib/sectionTitle";
 import { cfg, str } from "./config";
 
 /** First ~140 characters of a product description, tags stripped. */
@@ -48,8 +49,8 @@ export function FeaturedProductSection({ section }: { section: AppHomepageSectio
   const hasDiscount = Boolean(product.sale_price && product.sale_price !== product.price);
 
   return (
-    <section className="sf-section sf-featured">
-      {heading ? <h2 className="sf-section__title">{heading}</h2> : null}
+    <section className="sf-section sf-featured" {...titlePositionAttrs(c)}>
+      {heading ? <h2 className="sf-section__title sf-head">{heading}</h2> : null}
 
       <div className="sf-featured__card">
         <Link to={`/products/${product.slug}`} className="sf-featured__media">

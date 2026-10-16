@@ -617,6 +617,183 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 }
 .sf-testimonial__avatar { width: 2rem; height: 2rem; border-radius: 999px; object-fit: cover; }
 
+/* Section title position («موضع العنوان») ------------------------------------
+   Driven by `titlePositionAttrs()` on the <section> + `.sf-head` on its head.
+   `.sf-head--row` marks a head that is a row (title + "view all" link); a bare
+   heading only needs text alignment. Nothing applies without the attributes,
+   so «تلقائي» leaves every theme's own design untouched.              */
+section[data-title-v="bottom"] { display: flex; flex-direction: column; }
+section[data-title-v="bottom"] > * { order: 0; }
+section[data-title-v="bottom"] > .sf-head {
+  order: 1;
+  margin-top: var(--sf-head-gap, 1rem);
+  margin-bottom: 0;
+}
+section[data-title-align="start"] > .sf-head { text-align: start; }
+section[data-title-align="center"] > .sf-head { text-align: center; }
+section[data-title-align="end"] > .sf-head { text-align: end; }
+
+section[data-title-align="start"] > .sf-head--row {
+  flex-direction: row;
+  justify-content: space-between;
+}
+section[data-title-align="end"] > .sf-head--row {
+  flex-direction: row-reverse;
+  justify-content: space-between;
+}
+section[data-title-align="center"] > .sf-head--row {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* Swiper (<Swiper/>) ---------------------------------------------------------
+   Theme hooks: override any of these custom properties on `.sf-swiper` (or pass
+   `dots.color` / `dots.activeColor`, which set the two dot ones inline).        */
+.sf-swiper {
+  --sf-swiper-dot: rgb(255 255 255 / 0.55);
+  --sf-swiper-dot-active: #fff;
+  --sf-swiper-dot-size: 0.4375rem;
+  --sf-swiper-pill-width: 1.375rem;
+  --sf-swiper-arrow-size: 2.5rem;
+  position: relative;
+  overflow: hidden;
+  outline: none;
+}
+/* Dots below the slides sit on the page: the wrapper's background (a theme's
+   className) must not paint behind them. The stage keeps the wrapper's radius
+   (`border-radius: inherit`), so the slides stay clipped exactly as before. */
+.sf-swiper.has-outside-dots { overflow: visible; background-color: transparent; }
+.sf-swiper:focus-visible { box-shadow: 0 0 0 2px rgb(var(--accent)); }
+.sf-swiper__stage { position: relative; overflow: hidden; border-radius: inherit; }
+.sf-swiper__viewport { overflow: hidden; }
+.sf-swiper__track {
+  display: flex;
+  align-items: center;
+  touch-action: pan-y pinch-zoom;
+  user-select: none;
+  -webkit-user-select: none;
+  backface-visibility: hidden;
+}
+.sf-swiper__slide { min-width: 0; flex: 0 0 100%; }
+
+/* Pagination ---------------------------------------------------------------- */
+.sf-swiper__dots { display: flex; align-items: center; gap: 0.375rem; pointer-events: none; }
+.sf-swiper__dots > * { pointer-events: auto; }
+.sf-swiper__dots--center { justify-content: center; }
+.sf-swiper__dots--start { justify-content: flex-start; }
+.sf-swiper__dots--end { justify-content: flex-end; }
+.sf-swiper__dots--inside {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0.75rem;
+  padding-inline: 1rem;
+  z-index: 2;
+}
+/* Below the slides the dots sit on the page, so they take theme colours. */
+.sf-swiper__dots--outside {
+  --sf-swiper-dot: rgb(var(--foreground) / 0.18);
+  --sf-swiper-dot-active: rgb(var(--accent));
+  padding-top: 0.75rem;
+}
+
+.sf-swiper__dot {
+  flex: 0 0 auto;
+  width: var(--sf-swiper-dot-size);
+  height: var(--sf-swiper-dot-size);
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background-color: var(--sf-swiper-dot);
+  cursor: pointer;
+  transform: scale(var(--sf-swiper-dot-scale, 1));
+  transition:
+    width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.25s ease,
+    transform 0.25s ease;
+}
+.sf-swiper__dots--inside .sf-swiper__dot { box-shadow: 0 1px 3px rgb(0 0 0 / 0.25); }
+.sf-swiper__dot.is-active { background-color: var(--sf-swiper-dot-active); }
+.sf-swiper__dots--pill .sf-swiper__dot.is-active { width: var(--sf-swiper-pill-width); }
+.sf-swiper__dots--dot .sf-swiper__dot.is-active { transform: scale(1.3); }
+/* Bigger hit area than the visible dot (touch targets), without moving it. */
+.sf-swiper__dot { position: relative; }
+.sf-swiper__dot::after { content: ""; position: absolute; inset: -0.5rem -0.25rem; }
+
+.sf-swiper__bar {
+  position: relative;
+  display: block;
+  width: min(40%, 8rem);
+  height: 0.25rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background-color: var(--sf-swiper-dot);
+}
+.sf-swiper__bar-fill {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  border-radius: inherit;
+  background-color: var(--sf-swiper-dot-active);
+  transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sf-swiper__fraction {
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
+  color: var(--sf-swiper-dot-active);
+}
+.sf-swiper__dots--inside .sf-swiper__fraction {
+  background-color: rgb(0 0 0 / 0.35);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.sf-swiper__dots--outside .sf-swiper__fraction { color: rgb(var(--foreground-2)); background-color: rgb(var(--surface-2)); }
+
+/* Arrows -------------------------------------------------------------------- */
+.sf-swiper__arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--sf-swiper-arrow-size);
+  height: var(--sf-swiper-arrow-size);
+  margin-top: calc(var(--sf-swiper-arrow-size) / -2);
+  border: 0;
+  border-radius: 999px;
+  font-size: 1.125rem;
+  color: rgb(var(--foreground));
+  background-color: rgb(var(--surface) / 0.85);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.15);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.sf-swiper__arrow--prev { inset-inline-start: 0.75rem; }
+.sf-swiper__arrow--next { inset-inline-end: 0.75rem; }
+[dir="rtl"] .sf-swiper__arrow svg { transform: scaleX(-1); }
+/* Hover-revealed for mice; always visible where there is no hover (touch). */
+.sf-swiper:hover .sf-swiper__arrow,
+.sf-swiper:focus-within .sf-swiper__arrow { opacity: 1; }
+@media (hover: none) { .sf-swiper__arrow { opacity: 1; } }
+.sf-swiper__arrow:active:not(:disabled) { transform: scale(0.92); }
+.sf-swiper__arrow:disabled { opacity: 0 !important; pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sf-swiper__dot,
+  .sf-swiper__bar-fill,
+  .sf-swiper__arrow { transition: none; }
+}
+
 /* Rating stars (RatingStars) ---------------------------------------------- */
 .sf-stars { display: inline-flex; align-items: center; gap: 0.25rem; line-height: 1; }
 .sf-stars__row { display: inline-flex; gap: 0.0625rem; }
@@ -644,19 +821,70 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .sf-reviewer--hidden { filter: blur(4px); user-select: none; pointer-events: none; }
 
 /* Customer reviews section (CustomerReviewsSection) ------------------------- */
-.sf-review-card__footer { justify-content: space-between; }
-.sf-review-card__date { font-size: 0.75rem; font-weight: 400; color: rgb(var(--foreground-3)); }
+.sf-review-card {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 1.125rem;
+  border-radius: var(--sf-radius-card, 1.5rem);
+  background-color: rgb(var(--surface-2));
+}
+.sf-review-card__head { display: flex; align-items: center; gap: 0.625rem; }
+.sf-review-card__avatar {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  background-color: rgb(var(--accent-soft));
+  color: rgb(var(--accent));
+  font-weight: 700;
+  font-size: 1rem;
+}
+.sf-review-card__avatar.is-hidden { background-color: rgb(var(--foreground) / 0.08); color: rgb(var(--foreground-3)); }
+.sf-review-card__who { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: 0.125rem; }
+.sf-review-card__who .sf-reviewer { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.875rem; }
+.sf-review-card__verified { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.6875rem; color: rgb(var(--success)); }
+.sf-review-card__quote { flex: 0 0 auto; font-size: 1.5rem; color: rgb(var(--foreground) / 0.12); }
+.sf-review-card__rating { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.sf-review-card__date { font-size: 0.75rem; color: rgb(var(--foreground-3)); }
+.sf-review-card__text {
+  margin: 0;
+  color: rgb(var(--foreground-2));
+  font-size: 0.875rem;
+  line-height: 1.75;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 .sf-review-card__product {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid rgb(var(--foreground) / 0.06);
+  margin-top: auto;
+  padding: 0.5rem;
+  border-radius: calc(var(--sf-radius-card, 1.5rem) * 0.6);
+  background-color: rgb(var(--surface));
   font-size: 0.8125rem;
   color: rgb(var(--foreground-2));
+  transition: opacity 0.15s ease;
 }
-.sf-review-card__thumb { width: 2.25rem; height: 2.25rem; border-radius: 0.625rem; object-fit: cover; }
-.sf-review-card__product-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sf-review-card__product:active { opacity: 0.7; }
+.sf-review-card__thumb { flex: 0 0 auto; width: 2.25rem; height: 2.25rem; border-radius: 0.625rem; object-fit: cover; }
+.sf-review-card__product-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sf-review-card__chevron { flex: 0 0 auto; color: rgb(var(--foreground-3)); }
+[dir="ltr"] .sf-review-card__chevron { transform: scaleX(-1); }
+
+/* Swipe layout: SwipeRow rail with fixed-width, equal-height slides. */
+.sf-reviews__rail { padding-bottom: 0.25rem; }
+.sf-reviews__slide { display: flex; flex: 0 0 min(85%, 20rem); }
+.sf-reviews__slide > .sf-review-card { width: 100%; }
+@media (min-width: 768px) { .sf-reviews__slide { flex-basis: 20rem; } }
 
 /* Product page reviews block (ProductReviews) -------------------------------- */
 .sf-reviews-block { display: flex; flex-direction: column; gap: 1rem; margin-top: 2rem; }

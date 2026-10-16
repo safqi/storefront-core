@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { SmartLink } from "../components/SmartLink";
 import { SolarIcon } from "../components/SolarIcon";
 import { cfg, gridClass, rows, str } from "./config";
+import { titlePositionAttrs } from "../lib/sectionTitle";
 import { ASPECTS, parseVideo } from "./video";
 import { pad, parseDeadline, remaining, type Remaining } from "./countdown";
 import axios from "axios";
@@ -23,7 +24,7 @@ type Props = { section: AppHomepageSection };
 /** Section heading. Empty renders nothing — a heading-less block is valid. */
 function Heading({ text, className = "" }: { text: string; className?: string }) {
   if (!text) return null;
-  return <h2 className={`sf-section__title ${className}`}>{text}</h2>;
+  return <h2 className={`sf-section__title sf-head ${className}`}>{text}</h2>;
 }
 
 /**
@@ -109,7 +110,7 @@ export function VideoSection({ section }: Props) {
   const aspect = ASPECTS[cfg<string>(c, "aspect", "16/9")] ?? ASPECTS["16/9"];
 
   return (
-    <section className="sf-section sf-video">
+    <section className="sf-section sf-video" {...titlePositionAttrs(c)}>
       <Heading text={str(c, "heading")} />
       <div className={`${aspect} overflow-hidden rounded-3xl bg-surface-2`}>
         {source.kind === "file" ? (
@@ -143,7 +144,7 @@ export function FaqSection({ section }: Props) {
   if (items.length === 0) return null;
 
   return (
-    <section className="sf-section sf-faq">
+    <section className="sf-section sf-faq" {...titlePositionAttrs(c)}>
       <Heading text={str(c, "heading")} />
       <div className="flex flex-col gap-2">
         {items.map((item, i) => (
@@ -194,7 +195,7 @@ export function FeaturesStripSection({ section }: Props) {
   );
 
   return (
-    <section className="sf-section sf-features">
+    <section className="sf-section sf-features" {...titlePositionAttrs(c)}>
       <Heading text={str(c, "heading")} />
       <div className={`grid gap-3 ${grid}`}>
         {items.map((item, i) => (
@@ -245,7 +246,7 @@ export function TestimonialsSection({ section }: Props) {
   ));
 
   return (
-    <section className="sf-section sf-testimonials">
+    <section className="sf-section sf-testimonials" {...titlePositionAttrs(c)}>
       <Heading text={str(c, "heading")} />
       {swipe ? (
         <div className="sf-swipe-row sf-no-scrollbar flex gap-3 overflow-x-auto pb-2">

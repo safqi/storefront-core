@@ -70,6 +70,8 @@ export {
   VELOCITY_WINDOW_MS,
   MIN_FLICK_VELOCITY,
   MIN_COAST_VELOCITY,
+  scrollBounds,
+  splitOverscroll,
 } from "./lib/useDragScroll";
 export type { DragScrollOptions, DragSample } from "./lib/useDragScroll";
 
@@ -83,6 +85,18 @@ export { SolarIcon } from "./components/SolarIcon";
 export { ErrorState, EmptyState } from "./components/States";
 export type { ErrorStateProps, EmptyStateProps } from "./components/States";
 export { default as Swiper } from "./components/Swiper";
+export type { SwiperProps } from "./components/Swiper";
+export {
+  rubberBand,
+  RUBBER_BAND_CONSTANT,
+  dotWindow,
+  dotScale,
+  normalizeDots,
+  swiperPropsFromConfig,
+} from "./lib/swiper";
+export type { SwiperDotsConfig, SwiperDotsStyle, SwiperDotsPosition, SwiperDotsAlign } from "./lib/swiper";
+export { titlePositionAttrs, parseTitlePosition } from "./lib/sectionTitle";
+export type { TitlePosition, TitleVertical, TitleAlign } from "./lib/sectionTitle";
 export { default as SwipeRow } from "./components/SwipeRow";
 export type { SwipeRowProps } from "./components/SwipeRow";
 export { default as RequireAuth } from "./components/RequireAuth";

@@ -16,13 +16,13 @@ import type { DragScrollOptions } from "./dragScroll";
  *          `overflow-x: auto`), not on its inner track.
  */
 export function useDragScroll<T extends HTMLElement>(options: DragScrollOptions = {}) {
-  const { enabled = true, momentum, friction, threshold } = options;
+  const { enabled = true, momentum, friction, threshold, overscroll } = options;
 
   const ref = useRef<T>(null);
   // Live options for the listeners, which are bound once and must not be torn
   // down and rebuilt every time a caller passes a new object literal.
-  const opts = useRef<DragScrollOptions>({ momentum, friction, threshold });
-  opts.current = { momentum, friction, threshold };
+  const opts = useRef<DragScrollOptions>({ momentum, friction, threshold, overscroll });
+  opts.current = { momentum, friction, threshold, overscroll };
 
   useEffect(() => {
     const el = ref.current;
@@ -45,5 +45,7 @@ export {
   MIN_COAST_VELOCITY,
   MIN_FLICK_VELOCITY,
   VELOCITY_WINDOW_MS,
+  scrollBounds,
+  splitOverscroll,
 } from "./dragScroll";
 export type { DragScrollOptions, DragSample } from "./dragScroll";

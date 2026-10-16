@@ -1,3 +1,5 @@
+import { rubberBand } from "./swiper";
+
 /**
  * Drag-to-scroll for any horizontally scrollable element — the missing half of
  * "swipe like swiper.js".
@@ -58,6 +60,36 @@ export interface DragScrollOptions {
   friction?: number;
   /** Movement in px before a gesture counts as a drag rather than a click. */
   threshold?: number;
+  /**
+   * iOS-style rubber-band at the ends: dragging past the first/last item
+   * stretches the row with resistance and springs back, and a throw that hits
+   * an end bounces instead of stopping dead. Default true.
+   */
+  overscroll?: boolean;
+}
+
+/** Spring-back after an over-scroll — the iOS "settle" curve. */
+export const SPRING_BACK = "transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)";
+
+/** A throw that hits an end overshoots by this many ms of its speed (then springs back). */
+export const BOUNCE_MS = 90;
+
+/**
+ * Scroll bounds of a horizontal scroller as `[min, max]` scrollLeft values.
+ * RTL rows report a 0→negative range in every modern engine.
+ */
+export function scrollBounds(scrollWidth: number, clientWidth: number, rtl: boolean): [number, number] {
+  const range = Math.max(0, scrollWidth - clientWidth);
+  return rtl ? [-range, 0] : [0, range];
+}
+
+/**
+ * Split a requested scrollLeft into what the browser can actually scroll to
+ * and the part past the edge (the over-scroll to rubber-band).
+ */
+export function splitOverscroll(target: number, [min, max]: [number, number]): { scroll: number; over: number } {
+  const scroll = Math.min(max, Math.max(min, target));
+  return { scroll, over: target - scroll };
 }
 
 /** One sampled pointer position, used to derive the release velocity. */
@@ -130,7 +162,12 @@ export function attachDragScroll(
 ): () => void {
   const read = (): Required<Omit<DragScrollOptions, "enabled">> => {
     const o = typeof options === "function" ? options() : options;
-    return { momentum: o.momentum ?? true, friction: o.friction ?? 0.95, threshold: o.threshold ?? 5 };
+    return {
+      momentum: o.momentum ?? true,
+      friction: o.friction ?? 0.95,
+      threshold: o.threshold ?? 5,
+      overscroll: o.overscroll ?? true,
+    };
   };
 
   const doc = el.ownerDocument;
@@ -156,6 +193,68 @@ export function attachDragScroll(
     raf = 0;
   };
 
+  // ── Rubber-band ────────────────────────────────────────────────────────
+  // The scroll position itself can't go past an end, so the stretch is drawn
+  // by translating the row's items. Their own inline transforms are saved and
+  // restored, so a card that animates itself is left exactly as it was.
+  let offset = 0;
+  let saved: Array<[HTMLElement, string, string]> | null = null;
+  let springTimer: ReturnType<typeof setTimeout> | null = null;
+
+  const items = () => Array.from(el.children) as HTMLElement[];
+
+  const setOffset = (px: number, transition = "none") => {
+    if (springTimer) {
+      clearTimeout(springTimer);
+      springTimer = null;
+    }
+    if (!saved) saved = items().map((c) => [c, c.style.transform, c.style.transition]);
+    offset = px;
+    for (const [c, transform] of saved) {
+      c.style.transition = transition;
+      c.style.transform = px ? `translate3d(${px}px, 0, 0)${transform ? ` ${transform}` : ""}` : transform;
+    }
+  };
+
+  const restoreItems = () => {
+    if (!saved) return;
+    for (const [c, transform, transition] of saved) {
+      c.style.transform = transform;
+      c.style.transition = transition;
+    }
+    saved = null;
+    offset = 0;
+  };
+
+  /** Animate any stretch back to rest, then hand the items back untouched. */
+  const springBack = (after?: () => void) => {
+    if (!saved || offset === 0) {
+      restoreItems();
+      after?.();
+      return;
+    }
+    setOffset(0, SPRING_BACK);
+    springTimer = setTimeout(() => {
+      springTimer = null;
+      restoreItems();
+      after?.();
+    }, 520);
+  };
+
+  /** A throw that reached an end: overshoot by its speed, then settle. */
+  const bounce = (velocity: number, after: () => void) => {
+    const px = rubberBand(velocity * BOUNCE_MS, el.clientWidth);
+    if (Math.abs(px) < 1) {
+      after();
+      return;
+    }
+    setOffset(px, "transform 0.16s cubic-bezier(0.33, 1, 0.68, 1)");
+    springTimer = setTimeout(() => springBack(after), 160);
+  };
+
+  const bounds = () =>
+    scrollBounds(el.scrollWidth, el.clientWidth, getComputedStyle(el).direction === "rtl");
+
   const coast = (velocity: number) => {
     const reduceMotion =
       typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -175,7 +274,20 @@ export function attachDragScroll(
       const frames = Math.min((now - last) / 16.667, 4);
       last = now;
 
-      el.scrollLeft -= v * 16.667 * frames;
+      const target = el.scrollLeft - v * 16.667 * frames;
+      const { scroll, over } = splitOverscroll(target, bounds());
+      el.scrollLeft = scroll;
+
+      // Hit an end with speed to spare: bounce off it like iOS instead of
+      // stopping dead, then let snap settle once the spring is done.
+      if (over !== 0 && read().overscroll) {
+        raf = 0;
+        bounce(v, () => {
+          el.style.scrollSnapType = snapBefore;
+        });
+        return;
+      }
+
       v *= Math.pow(read().friction, frames);
 
       if (isCoastFinished(v)) {
@@ -223,6 +335,7 @@ export function attachDragScroll(
     if (el.scrollWidth <= el.clientWidth) return;
 
     stopCoasting();
+    if (springTimer || saved) restoreItems();
     pointerId = e.pointerId;
     startX = e.clientX;
     startY = e.clientY;
@@ -246,7 +359,16 @@ export function attachDragScroll(
 
     // Sub-threshold jitter is a click, not a nudge — moving the row by the
     // couple of pixels a hand shakes on mousedown would only blur it.
-    if (dragging) el.scrollLeft = startScroll - dx;
+    if (dragging) {
+      const { scroll, over } = splitOverscroll(startScroll - dx, bounds());
+      el.scrollLeft = scroll;
+      // Past an end: stretch with resistance (content moves opposite to the
+      // scroll direction, hence the minus).
+      if (read().overscroll) {
+        const stretch = over ? -rubberBand(over, el.clientWidth) : 0;
+        if (stretch !== offset) setOffset(stretch);
+      }
+    }
 
     samples.push({ x: e.clientX, t: performance.now() });
     if (samples.length > 12) samples.shift();
@@ -265,7 +387,15 @@ export function attachDragScroll(
 
     // A press that never became a drag left no styles to restore and has no
     // velocity to spend — it is a click, so leave the row completely alone.
-    if (wasDragging) coast(computeVelocity(samples));
+    if (!wasDragging) return;
+    if (offset !== 0) {
+      // Released while stretched past an end: spring back, no throw.
+      springBack(() => {
+        el.style.scrollSnapType = snapBefore;
+      });
+      return;
+    }
+    coast(computeVelocity(samples));
   };
 
   const unbindGesture = () => {
@@ -320,6 +450,8 @@ export function attachDragScroll(
 
   return () => {
     stopCoasting();
+    if (springTimer) clearTimeout(springTimer);
+    restoreItems();
     observer?.disconnect();
     // Unmounting mid-gesture would otherwise leave the document listeners
     // scrolling a detached element for the rest of the session.

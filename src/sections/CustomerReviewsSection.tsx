@@ -3,8 +3,11 @@ import { Link } from "react-router-dom";
 import { fetchReviews, reviewKeys } from "../lib/reviews";
 import { RatingStars } from "../components/RatingStars";
 import { ReviewerName } from "../components/ReviewerName";
-import { lang } from "../lib/i18n";
+import { lang, t } from "../lib/i18n";
+import { SolarIcon } from "../components/SolarIcon";
+import SwipeRow from "../components/SwipeRow";
 import type { ReviewFeedQuery, StorefrontReview } from "../types/review";
+import { titlePositionAttrs } from "../lib/sectionTitle";
 import { cfg, gridClass, str } from "./config";
 
 /** The feed query a section config asks for — exported for tests. */
@@ -34,22 +37,40 @@ function formatDate(iso: string | null): string {
 }
 
 function ReviewCard({ review, showProduct, showDate }: { review: StorefrontReview; showProduct: boolean; showDate: boolean }) {
+  // A hidden reviewer gets a neutral avatar — never the initial of a real name.
+  const initial = review.name_hidden ? "" : review.name.trim().charAt(0);
+
   return (
-    <figure className="sf-testimonial sf-review-card">
-      <RatingStars value={review.rating} size="sm" />
-      {review.comment ? <blockquote className="sf-testimonial__text">{review.comment}</blockquote> : null}
-      <figcaption className="sf-testimonial__author sf-review-card__footer">
-        <ReviewerName review={review} />
+    <figure className="sf-review-card">
+      <div className="sf-review-card__head">
+        <span className={`sf-review-card__avatar${review.name_hidden ? " is-hidden" : ""}`} aria-hidden>
+          {initial || <SolarIcon name="user-linear" />}
+        </span>
+        <div className="sf-review-card__who">
+          <ReviewerName review={review} />
+          <span className="sf-review-card__verified">
+            <SolarIcon name="verified-check-bold" /> {t("reviews.verifiedBuyer")}
+          </span>
+        </div>
+        <SolarIcon name="chat-square-like-linear" className="sf-review-card__quote" />
+      </div>
+
+      <div className="sf-review-card__rating">
+        <RatingStars value={review.rating} size="md" />
         {showDate && review.created_at ? (
           <span className="sf-review-card__date">{formatDate(review.created_at)}</span>
         ) : null}
-      </figcaption>
+      </div>
+
+      {review.comment ? <blockquote className="sf-review-card__text">{review.comment}</blockquote> : null}
+
       {showProduct && review.product ? (
         <Link to={`/products/${review.product.slug}`} className="sf-review-card__product">
           {review.product.image ? (
             <img src={review.product.image} alt="" loading="lazy" className="sf-review-card__thumb" />
           ) : null}
           <span className="sf-review-card__product-name">{review.product.name}</span>
+          <SolarIcon name="alt-arrow-left-linear" className="sf-review-card__chevron" />
         </Link>
       ) : null}
     </figure>
@@ -90,16 +111,18 @@ export function CustomerReviewsSection({ section }: { section: AppHomepageSectio
   const cards = reviews.map((r) => <ReviewCard key={r.id} review={r} showProduct={showProduct} showDate={showDate} />);
 
   return (
-    <section className="sf-section sf-testimonials sf-reviews">
-      {heading ? <h2 className="sf-section__title">{heading}</h2> : null}
+    <section className="sf-section sf-reviews" {...titlePositionAttrs(c)}>
+      {heading ? <h2 className="sf-section__title sf-head">{heading}</h2> : null}
       {swipe ? (
-        <div className="sf-swipe-row sf-no-scrollbar flex gap-3 overflow-x-auto pb-2">
-          {cards.map((card, i) => (
-            <div key={i} className="w-72 flex-shrink-0">
-              {card}
+        // Same rail the product shelves use: native scroll + snap, and a mouse
+        // can drag/fling it too (SwipeRow → useDragScroll).
+        <SwipeRow ariaLabel={heading || t("reviews.title")} gap="gap-3" className="sf-reviews__rail">
+          {reviews.map((r) => (
+            <div key={r.id} className="sf-reviews__slide">
+              <ReviewCard review={r} showProduct={showProduct} showDate={showDate} />
             </div>
           ))}
-        </div>
+        </SwipeRow>
       ) : (
         <div className={`grid gap-3 ${gridClass(1, desktop)}`}>{cards}</div>
       )}

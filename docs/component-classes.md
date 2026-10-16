@@ -58,6 +58,8 @@ Example reskin — flatter corners everywhere, one edit:
 | `.rich-text` | server-sanitized HTML (descriptions) |
 | `.sf-lightbox` + `__backdrop` / `__bar` / `__counter` / `__btn` / `__frame` / `__img` (`.is-zoomed`) / `__nav--prev` / `__nav--next` / `__thumbs` / `__thumb` (`.is-active`) | full-screen photo viewer (`<Lightbox />`) |
 | `.sf-dialog` + `__backdrop` / `__panel` / `__icon` (`.is-destructive`) / `__title` / `__message` / `__actions` / `__action` (`--danger`) | confirmation modal (`<ConfirmDialog />`) |
+| `.sf-head` (+ `.sf-head--row` for a title + link row) on a section's head, with `data-title-v="top|bottom"` / `data-title-align="start|center|end"` on the `<section>` (spread `titlePositionAttrs(config)`) | merchant «موضع العنوان» — moves/aligns the head; no attributes = theme design |
+| `.sf-swiper` (`.has-outside-dots`) + `__stage` / `__viewport` / `__track` / `__slide` (`.is-active`) / `__dots` (`--inside`/`--outside`, `--center`/`--start`/`--end`, `--pill`/`--dot`/`--bar`/`--fraction`) / `__dot` (`.is-active`) / `__bar` / `__bar-fill` / `__fraction` / `__arrow` (`--prev`/`--next`). Vars: `--sf-swiper-dot`, `--sf-swiper-dot-active`, `--sf-swiper-dot-size`, `--sf-swiper-pill-width`, `--sf-swiper-arrow-size` | slide carousel (`<Swiper />`) |
 | `.sf-stars` + `--sm` / `--md` / `--lg`, `__row` / `__on` / `__off` / `__half` / `__value` / `__count` | read-only star rating (`<RatingStars />`) |
 | `.sf-reviewer` (`--hidden` = blurred placeholder) | reviewer name (`<ReviewerName />`) |
 | `.sf-review-card__*` (on top of `.sf-testimonial*`) | «تقييمات العملاء» section cards (`customer_reviews`) |
