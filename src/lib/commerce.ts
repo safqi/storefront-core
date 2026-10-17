@@ -78,6 +78,21 @@ export async function verifyOtp(payload: {
   return data;
 }
 
+/**
+ * Start (or resume, when a guest token is already attached) a guest-checkout
+ * session. Only works while `appConfig.GUEST_CHECKOUT` is true — 403 with
+ * `code: "guest_checkout_disabled"` otherwise. Prefer `useAuth().ensureSession()`.
+ */
+export async function createGuestSession(): Promise<AuthResult> {
+  const { data } = await axios.post("auth/guest");
+  return data;
+}
+
+/** Is guest checkout switched on for this store? */
+export function guestCheckoutEnabled(): boolean {
+  return typeof window !== "undefined" && window.appConfig?.GUEST_CHECKOUT === true;
+}
+
 export async function fetchMe(): Promise<Customer> {
   const { data } = await axios.get("auth/me");
   return unwrap<Customer>(data);

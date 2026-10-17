@@ -156,6 +156,11 @@ declare global {
       max_reward_per_order: number | null;
       attribution_days: number;
     } | null;
+    /**
+     * «السماح بالطلب كزائر»: the shopper may cart + check out without logging in
+     * (the core starts a guest session via POST auth/guest on first add-to-cart).
+     */
+    GUEST_CHECKOUT?: boolean;
     /** Storefront AI assistant widget config; null when the store doesn't run it. */
     ASSISTANT?: import("./assistant").AssistantConfig | null;
     [key: string]: unknown;

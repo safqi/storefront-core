@@ -9,6 +9,7 @@ to all themes with a single version bump instead of an N-repo copy-merge.
 - **appConfig reader** — the only reader of `window.appConfig` (`getApiUrl`, `getTheme`, `isAppInstalled`, …).
 - **Data / API** — `fetchProducts`, `fetchProduct`, `fetchCategories`, `fetchBrands`, `fetchFilters`, `queryKeys` (catalog) and the whole `commerce` layer (OTP auth, cart, addresses, geo, shipping, payments, orders, downloads, memberships).
 - **Auth + cart** — `AuthProvider` / `useAuth`, `useCart`.
+- **Guest checkout** — when `appConfig.GUEST_CHECKOUT` is true, `useCart().add` starts a guest session (`POST auth/guest`) instead of failing; otherwise it rejects with `LoginRequiredError` → send the shopper to `/login`. `useAuth()` exposes `isGuest`, `hasSession` (any token), `guestCheckout` and `ensureSession()`; `isAuthenticated` stays **false** for a guest. Wrap cart/checkout/order routes in `<RequireAuth allowGuest>`; account routes stay plain `<RequireAuth>`. Logging in with the guest token still attached merges the guest cart + orders server-side.
 - **i18n + formatting + status** — `t`, `formatMoney`, `orderStatusLabel`, `statusTone`.
 - **Theme-token engine** — `applyThemeSettings()` (derives the OKLCh accent ramp + font from tenant settings).
 - **Icon registry** — `Icon`, `SolarIcon`, `ICONS`, `resolveIcon`.

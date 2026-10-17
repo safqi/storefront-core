@@ -35,7 +35,7 @@ export interface UseAssistantOptions {
  */
 export function useAssistant(options: UseAssistantOptions = {}) {
   const config = getAssistantConfig();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, login } = useAuth();
   const queryClient = useQueryClient();
   const [state, dispatch] = useReducer(assistantReducer, initialAssistantState);
   const [conversation, setConversation] = useState<AssistantConversation | null>(null);
@@ -74,8 +74,10 @@ export function useAssistant(options: UseAssistantOptions = {}) {
       dispatch({ type: "event", event });
       if (event.event === "cart_updated") queryClient.invalidateQueries({ queryKey: commerceKeys.cart });
       if (event.event === "login_required") optsRef.current.onLoginRequired?.(event.data.message);
+      // Guest checkout started from the chat — adopt the guest session.
+      if (event.event === "session") login(event.data.token, event.data.user);
     },
-    [queryClient],
+    [queryClient, login],
   );
 
   const send = useCallback(
@@ -119,7 +121,8 @@ export function useAssistant(options: UseAssistantOptions = {}) {
   const confirm = useCallback(
     async (proposal: AssistantProposal) => {
       const order = await confirmAssistantProposal(proposal.token);
-      dispatch({ type: "proposal_done", token: proposal.token });
+      // Retire the card and show the confirmation (order number, total…).
+      dispatch({ type: "proposal_done", token: proposal.token, message: order.assistant_message ?? null });
       queryClient.invalidateQueries({ queryKey: commerceKeys.cart });
       queryClient.invalidateQueries({ queryKey: commerceKeys.orders });
       optsRef.current.onOrderPlaced?.(order);

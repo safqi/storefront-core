@@ -78,7 +78,13 @@ export async function sendAssistantFeedback(messageId: number, rating: "up" | "d
 /** The shopper pressed «تأكيد الطلب» — places the order; same response as POST /orders. */
 export async function confirmAssistantProposal(
   token: string,
-): Promise<Order & { payment?: { method: string; redirect_url: string | null } }> {
+): Promise<
+  Order & {
+    payment?: { method: string; redirect_url: string | null };
+    /** The chat's confirmation message (order number, total, order card); null outside a thread. */
+    assistant_message?: AssistantMessage | null;
+  }
+> {
   const { data } = await axios.post("assistant/proposals/confirm", { token });
   return data;
 }
@@ -249,7 +255,8 @@ export type AssistantAction =
   | { type: "event"; event: AssistantEvent }
   | { type: "fail"; message: string }
   | { type: "feedback"; id: number; rating: "up" | "down" }
-  | { type: "proposal_done"; token: string };
+  /** The shopper confirmed a checkout card; `message` is the server's confirmation (order number…). */
+  | { type: "proposal_done"; token: string; message?: AssistantMessage | null };
 
 let localId = -1;
 
@@ -293,15 +300,14 @@ export function assistantReducer(state: AssistantState, action: AssistantAction)
         messages: state.messages.map((m) => (m.id === action.id ? { ...m, feedback: action.rating } : m)),
       };
 
-    case "proposal_done":
-      return {
-        ...state,
-        messages: state.messages.map((m) =>
-          m.cards?.proposal?.token === action.token
-            ? { ...m, cards: { ...m.cards, proposal: undefined } }
-            : m,
-        ),
-      };
+    case "proposal_done": {
+      const messages = state.messages.map((m) =>
+        m.cards?.proposal?.token === action.token
+          ? { ...m, cards: { ...m.cards, proposal: undefined } }
+          : m,
+      );
+      return { ...state, messages: action.message ? [...messages, action.message] : messages };
+    }
 
     case "event": {
       const e = action.event;

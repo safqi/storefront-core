@@ -56,6 +56,28 @@ describe("assistantReducer", () => {
     expect(s.busy).toBe(false);
   });
 
+  it("retires a confirmed card and appends the order confirmation", () => {
+    let s = assistantReducer(initialAssistantState, { type: "send", text: "اطلب" });
+    s = assistantReducer(s, ev({ event: "proposal", data: { type: "checkout", token: "t9", expires_in: 900, summary: {} as any } }));
+    s = assistantReducer(s, ev({ event: "done", data: { message_id: 7 } }));
+    s = assistantReducer(s, {
+      type: "proposal_done",
+      token: "t9",
+      message: { id: 8, role: "assistant", content: "✅ تم تأكيد طلبك رقم #1042", cards: { order: { id: 5, order_number: "1042", total: "25.00", currency: "IQD" } } },
+    });
+    expect(s.messages.some((m) => m.cards?.proposal)).toBe(false);
+    const last = s.messages[s.messages.length - 1];
+    expect(last.content).toContain("#1042");
+    expect(last.cards?.order?.id).toBe(5);
+  });
+
+  it("keeps the guest-session credential out of the chat state", () => {
+    const sent = assistantReducer(initialAssistantState, { type: "send", text: "أضف" });
+    const s = assistantReducer(sent, ev({ event: "session", data: { token: "9|secret", user: { id: 1, name: "زائر", email: null, phone: null, type: "customer", is_guest: true } } }));
+    expect(s).toBe(sent);
+    expect(JSON.stringify(s)).not.toContain("9|secret");
+  });
+
   it("records login walls, proposals and errors on the streaming reply", () => {
     let s = assistantReducer(initialAssistantState, { type: "send", text: "اطلب" });
     s = assistantReducer(s, ev({ event: "login_required", data: { reason: "x", message: "سجّل" } }));

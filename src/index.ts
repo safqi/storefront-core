@@ -30,7 +30,7 @@ export { queryClient } from "./lib/queryClient";
 
 // --- auth + cart ---
 export { AuthProvider, useAuth } from "./lib/auth";
-export { useCart } from "./lib/useCart";
+export { useCart, LoginRequiredError } from "./lib/useCart";
 
 // --- storefront AI assistant (headless) ---
 export * from "./lib/assistant";

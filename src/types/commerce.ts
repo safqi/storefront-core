@@ -10,6 +10,8 @@ export interface Customer {
   phone: string | null;
   phone_verified?: boolean;
   type: string;
+  /** Hidden guest-checkout account (POST auth/guest) — cart/orders only. */
+  is_guest?: boolean;
   /** Preferred storefront language code (e.g. "ar", "en"). */
   locale?: string | null;
 }

@@ -82,10 +82,24 @@ export interface AssistantProposal {
 }
 
 /** What the transcript stores alongside a reply (also replayed from history). */
+/** The order the shopper just placed from a checkout card (on the confirmation message). */
+export interface AssistantPlacedOrder {
+  id: number;
+  order_number: string;
+  /** Display-currency amount, 2 decimals. */
+  total: string;
+  currency: string;
+  status_label?: string;
+  payment_label?: string;
+  /** Online payment still to complete — the hosted payment page. */
+  redirect_url?: string;
+}
+
 export interface AssistantCards {
   products?: StorefrontProduct[];
   coupons?: AssistantCoupon[];
   proposal?: AssistantProposal;
+  order?: AssistantPlacedOrder;
   login_required?: boolean;
   cart_updated?: boolean;
 }
@@ -113,6 +127,12 @@ export type AssistantEvent =
   | { event: "coupons"; data: { coupons: AssistantCoupon[] } }
   | { event: "cart_updated"; data: { item_count: number } }
   | { event: "login_required"; data: { reason: string; message: string } }
+  /**
+   * Guest checkout: the assistant started a guest-checkout session for this
+   * anonymous shopper (store allows guest orders). useAssistant stores it like
+   * a login so the site cart, /checkout and the confirm call follow along.
+   */
+  | { event: "session"; data: { token: string; user: import("./commerce").Customer } }
   | { event: "proposal"; data: AssistantProposal }
   | { event: "message"; data: { text: string; message_id: number } }
   | { event: "done"; data: { message_id: number } }

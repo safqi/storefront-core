@@ -7,7 +7,7 @@
  */
 
 /** Semver of this core; recorded by themes so drift against basic is detectable. */
-export const CORE_VERSION = "1.13.0";
+export const CORE_VERSION = "1.14.0";
 
 export interface EndpointSpec {
   /** Path relative to the tenant API base (window.appConfig.API_URL, .../api/v1). */
@@ -18,6 +18,8 @@ export interface EndpointSpec {
   helper?: string;
   /** Requires an authenticated shopper (Sanctum bearer). */
   auth?: boolean;
+  /** Also accepts a guest-checkout token (POST auth/guest) while appConfig.GUEST_CHECKOUT is on. */
+  guest?: boolean;
 }
 
 export interface EndpointGroup {
@@ -71,8 +73,9 @@ export const ENDPOINTS: EndpointGroup[] = [
     endpoints: [
       { path: "auth/otp/request", method: "POST", summary: "Send WhatsApp OTP", helper: "requestOtp" },
       { path: "auth/otp/verify", method: "POST", summary: "Verify OTP → Sanctum token", helper: "verifyOtp" },
-      { path: "auth/me", method: "GET", summary: "Current shopper", helper: "fetchMe", auth: true },
-      { path: "auth/logout", method: "POST", summary: "Revoke token", helper: "logoutRequest", auth: true },
+      { path: "auth/me", method: "GET", summary: "Current shopper", helper: "fetchMe", auth: true, guest: true },
+      { path: "auth/logout", method: "POST", summary: "Revoke token", helper: "logoutRequest", auth: true, guest: true },
+      { path: "auth/guest", method: "POST", summary: "Start a guest-checkout session (only when appConfig.GUEST_CHECKOUT); login/OTP with it attached merges cart+orders", helper: "createGuestSession" },
       { path: "account/locale", method: "PATCH", summary: "Persist UI language", helper: "updateLocale", auth: true },
     ],
   },
@@ -80,23 +83,23 @@ export const ENDPOINTS: EndpointGroup[] = [
     group: "Cart & coupons",
     base: "v1",
     endpoints: [
-      { path: "cart", method: "GET", summary: "Current cart", helper: "fetchCart" },
-      { path: "cart/items", method: "POST", summary: "Add item", helper: "addCartItem" },
-      { path: "cart/items/{id}", method: "PATCH", summary: "Update quantity", helper: "updateCartItem" },
-      { path: "cart/items/{id}", method: "DELETE", summary: "Remove item", helper: "removeCartItem" },
-      { path: "cart", method: "DELETE", summary: "Clear cart", helper: "clearCart" },
-      { path: "cart/coupon", method: "POST", summary: "Apply coupon", helper: "applyCoupon" },
-      { path: "cart/coupon", method: "DELETE", summary: "Remove coupon", helper: "removeCoupon" },
+      { path: "cart", method: "GET", summary: "Current cart", helper: "fetchCart", auth: true, guest: true },
+      { path: "cart/items", method: "POST", summary: "Add item", helper: "addCartItem", auth: true, guest: true },
+      { path: "cart/items/{id}", method: "PATCH", summary: "Update quantity", helper: "updateCartItem", auth: true, guest: true },
+      { path: "cart/items/{id}", method: "DELETE", summary: "Remove item", helper: "removeCartItem", auth: true, guest: true },
+      { path: "cart", method: "DELETE", summary: "Clear cart", helper: "clearCart", auth: true, guest: true },
+      { path: "cart/coupon", method: "POST", summary: "Apply coupon", helper: "applyCoupon", auth: true, guest: true },
+      { path: "cart/coupon", method: "DELETE", summary: "Remove coupon", helper: "removeCoupon", auth: true, guest: true },
     ],
   },
   {
     group: "Addresses & geo",
     base: "v1",
     endpoints: [
-      { path: "addresses", method: "GET", summary: "List addresses", helper: "fetchAddresses", auth: true },
-      { path: "addresses", method: "POST", summary: "Create address", helper: "createAddress", auth: true },
-      { path: "addresses/{id}", method: "PATCH", summary: "Update address", helper: "updateAddress", auth: true },
-      { path: "addresses/{id}", method: "DELETE", summary: "Delete address", helper: "deleteAddress", auth: true },
+      { path: "addresses", method: "GET", summary: "List addresses", helper: "fetchAddresses", auth: true, guest: true },
+      { path: "addresses", method: "POST", summary: "Create address", helper: "createAddress", auth: true, guest: true },
+      { path: "addresses/{id}", method: "PATCH", summary: "Update address", helper: "updateAddress", auth: true, guest: true },
+      { path: "addresses/{id}", method: "DELETE", summary: "Delete address", helper: "deleteAddress", auth: true, guest: true },
       { path: "geo/cities", method: "GET", summary: "Cities", helper: "fetchCities" },
       { path: "geo/districts", method: "GET", summary: "Districts for a city", helper: "fetchDistricts" },
       { path: "geo/resolve", method: "GET", summary: "Resolve lat/lng → city+district", helper: "resolveGeo" },
@@ -106,20 +109,20 @@ export const ENDPOINTS: EndpointGroup[] = [
     group: "Checkout, shipping & payments",
     base: "v1",
     endpoints: [
-      { path: "checkout/shipping-options", method: "GET", summary: "Shipping methods for the cart", helper: "fetchShippingOptions", auth: true },
-      { path: "checkout/payment-methods", method: "GET", summary: "Enabled payment methods (COD, bank transfer + its accounts, online gateways)", helper: "fetchPaymentMethods", auth: true },
-      { path: "orders", method: "POST", summary: "Place order", helper: "checkout", auth: true },
-      { path: "orders/{id}/pay", method: "POST", summary: "Pay for an order", helper: "payOrder", auth: true },
-      { path: "orders/{id}/transfer", method: "POST", summary: "Resubmit a rejected bank-transfer proof", helper: "submitTransfer", auth: true },
+      { path: "checkout/shipping-options", method: "GET", summary: "Shipping methods for the cart", helper: "fetchShippingOptions", auth: true, guest: true },
+      { path: "checkout/payment-methods", method: "GET", summary: "Enabled payment methods (COD, bank transfer + its accounts, online gateways)", helper: "fetchPaymentMethods", auth: true, guest: true },
+      { path: "orders", method: "POST", summary: "Place order", helper: "checkout", auth: true, guest: true },
+      { path: "orders/{id}/pay", method: "POST", summary: "Pay for an order", helper: "payOrder", auth: true, guest: true },
+      { path: "orders/{id}/transfer", method: "POST", summary: "Resubmit a rejected bank-transfer proof", helper: "submitTransfer", auth: true, guest: true },
     ],
   },
   {
     group: "Orders, downloads & memberships",
     base: "v1",
     endpoints: [
-      { path: "orders", method: "GET", summary: "Order history", helper: "fetchOrders", auth: true },
-      { path: "orders/{id}", method: "GET", summary: "Order detail", helper: "fetchOrder", auth: true },
-      { path: "account/downloads", method: "GET", summary: "Digital deliverables", helper: "fetchDownloads", auth: true },
+      { path: "orders", method: "GET", summary: "Order history", helper: "fetchOrders", auth: true, guest: true },
+      { path: "orders/{id}", method: "GET", summary: "Order detail", helper: "fetchOrder", auth: true, guest: true },
+      { path: "account/downloads", method: "GET", summary: "Digital deliverables", helper: "fetchDownloads", auth: true, guest: true },
       { path: "account/memberships", method: "GET", summary: "Fitness/membership grants", helper: "fetchMemberships", auth: true },
       { path: "account/referral", method: "GET", summary: "Personal product-share ?ref= code, program terms, referral earnings", helper: "fetchReferral", auth: true },
       { path: "account/credit", method: "GET", summary: "Store credit (cashback) balance + ledger; spend with checkout use_credit", helper: "fetchCredit", auth: true },
