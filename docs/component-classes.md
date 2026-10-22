@@ -99,3 +99,16 @@ theme the merchant runs, including themes that weren't in your demo.
   <button class="sf-btn sf-btn--primary">…</button>
 </div>
 ```
+
+## Product-page app slots (`.sf-app-slot`) — core ≥ 1.15
+
+`<ProductAppSlots product variant position />` renders one `div.sf-app-slot[data-app-slot="{slug}:{key}"]`
+per installed app slot and injects the app's server-rendered HTML into it (its `css` goes into a single
+`<style data-app-slot="{slug}:{key}">`). The wrapper is unstyled beyond `display:block`; the app's markup
+should use the classes above (`.sf-btn`, `.sf-chip`, `.sf-input`, `.sf-label`, `.sf-muted`, …) and the theme
+tokens (`--accent`, `--surface*`, `--foreground*`, `--divider`, `--sf-radius-*`, `--sf-overlay-*`) so it
+looks native in every theme.
+
+Themes mount it after the variant picker (`below_variants`) and before the reviews (`below_description`),
+and hide a built-in block an app supersedes with `isProductBlockReplaced("size_chart")`. Apps attach
+behaviour through `window.SafqiApps.register(slug, { mount, update, unmount })` — see `src/lib/appSlots.ts`.

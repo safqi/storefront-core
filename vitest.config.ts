@@ -4,6 +4,6 @@ export default defineConfig({
   test: {
     // Pure data-layer units — no DOM needed.
     environment: "node",
-    include: ["src/**/*.test.ts"],
+    include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
   },
 });

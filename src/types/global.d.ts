@@ -107,6 +107,12 @@ declare global {
     slug: string;
     /** Present only when the app declares a storefront nav entry. */
     nav?: InstalledAppNav;
+    /** Product-page slots the app contributes (see ProductAppSlots). */
+    productSlots?: Array<{
+      key: string;
+      position: "below_variants" | "below_description";
+      replaces: string | null;
+    }>;
   }
 
   interface AppConfig {

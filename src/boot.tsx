@@ -7,6 +7,7 @@ import { initCurrency } from "./lib/currency";
 import { getApiUrl, getAppDir, getAppLang, getIsPreview } from "./lib/appConfig";
 import { applyThemeSettings } from "./lib/themeSettings";
 import { captureReferral } from "./lib/referral";
+import { installAppRegistry } from "./lib/appSlots";
 import { queryClient } from "./lib/queryClient";
 import { AuthProvider } from "./lib/auth";
 import { ScrollToTop } from "./components/ScrollToTop";
@@ -70,6 +71,10 @@ export function bootStorefront({ children, rootId = "root" }: BootOptions): void
   // Remember a product-share `?ref=` before any route renders, so the product
   // page can attribute the add-to-cart. Every theme gets it via this boot.
   captureReferral();
+
+  // Swap the window.SafqiApps queue stub (filled by app body scripts that ran
+  // before this bundle) for the real product-slot registry.
+  installAppRegistry();
 
   const preview = getIsPreview();
   if (preview) {

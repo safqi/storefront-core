@@ -1029,6 +1029,11 @@ section[data-title-align="center"] > .sf-head--row {
 .sf-app-section__title { font-size: 0.875rem; font-weight: 600; color: rgb(var(--foreground)); }
 .sf-app-section__subtitle { font-size: 0.75rem; color: rgb(var(--foreground-3)); }
 
+/* Product-page app slot (<ProductAppSlots>) — the wrapper only; the app's own
+   HTML brings its styling (.sf-* classes + its scoped css). */
+.sf-app-slot { display: block; min-width: 0; }
+.sf-app-slot:empty { display: none; }
+
 /* -----------------------------------------------------------------------------
    Overlays — the photo viewer (`<Lightbox />`) and the confirmation modal
    (`<ConfirmDialog />`).

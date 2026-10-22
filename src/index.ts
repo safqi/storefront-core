@@ -29,7 +29,7 @@ export * from "./lib/reviews";
 export { queryClient } from "./lib/queryClient";
 
 // --- auth + cart ---
-export { AuthProvider, useAuth } from "./lib/auth";
+export { AuthProvider, useAuth, getAuthToken } from "./lib/auth";
 export { useCart, LoginRequiredError } from "./lib/useCart";
 
 // --- storefront AI assistant (headless) ---
@@ -103,6 +103,22 @@ export { default as RequireAuth } from "./components/RequireAuth";
 export { SmartLink, isExternalHref } from "./components/SmartLink";
 export type { SmartLinkProps } from "./components/SmartLink";
 export { AnnouncementBar } from "./components/AnnouncementBar";
+export { ProductAppSlots } from "./components/ProductAppSlots";
+export type { ProductAppSlotsProps } from "./components/ProductAppSlots";
+export {
+  installAppRegistry,
+  getAppRegistry,
+  getProductSlots,
+  isProductBlockReplaced,
+  injectSlotStyle,
+} from "./lib/appSlots";
+export type {
+  AppSlotContext,
+  AppSlotHandler,
+  AppRegistry,
+  ProductSlotDecl,
+  ProductSlotPosition,
+} from "./lib/appSlots";
 export { default as Lightbox } from "./components/Lightbox";
 export type { LightboxProps } from "./components/Lightbox";
 export { default as ConfirmDialog } from "./components/ConfirmDialog";

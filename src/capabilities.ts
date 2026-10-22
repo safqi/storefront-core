@@ -7,7 +7,7 @@
  */
 
 /** Semver of this core; recorded by themes so drift against basic is detectable. */
-export const CORE_VERSION = "1.14.0";
+export const CORE_VERSION = "1.15.0";
 
 export interface EndpointSpec {
   /** Path relative to the tenant API base (window.appConfig.API_URL, .../api/v1). */
@@ -147,6 +147,7 @@ export const ENDPOINTS: EndpointGroup[] = [
     endpoints: [
       { path: "{slug}/*", method: "GET", summary: "App-owned endpoints (only for apps in window.appConfig.apps — gate with isAppInstalled)" },
       { path: "{slug}/sections/{key}", method: "GET", summary: "Data for an app-contributed homepage section: { title, layout, items[] }. Served by the platform, not the app." },
+      { path: "{slug}/product-slots/{key}", method: "GET", summary: "Server-rendered markup for an app's product-page slot: { html, css } (?product={slug}); 204 = nothing for this product. Mounted by <ProductAppSlots>, hydrated through window.SafqiApps." },
     ],
   },
 ];

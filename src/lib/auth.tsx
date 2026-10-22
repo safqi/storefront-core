@@ -65,6 +65,14 @@ function readToken(): string | null {
   }
 }
 
+/**
+ * The persisted bearer token, read fresh each call (for code outside React —
+ * e.g. app slot scripts via AppSlotContext.token). Null when signed out.
+ */
+export function getAuthToken(): string | null {
+  return readToken();
+}
+
 function readGuestFlag(): boolean {
   try {
     return localStorage.getItem(GUEST_KEY) === "1";
