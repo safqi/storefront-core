@@ -345,14 +345,20 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
    Rich-text — server-sanitized product/description HTML (HtmlSanitizer allow-
    list: paragraphs, lists, tables, images, inline formatting). RTL-friendly.
    ============================================================================= */
+/* Wrap like the admin editor: contentEditable gets break-word from the UA, a
+   plain div does not — pasted text joined by &nbsp; would overflow the card. */
+.rich-text { overflow-wrap: anywhere; }
 .rich-text > *:first-child { margin-top: 0; }
 .rich-text > *:last-child { margin-bottom: 0; }
-.rich-text p { margin: 0 0 0.75rem; }
+/* Tight block rhythm, matching the admin editor (.rte-content). Merchants
+   alternate bullet / paragraph / bullet, and roomy margins scatter that. */
+.rich-text p { margin: 0 0 0.375rem; }
 .rich-text ul,
-.rich-text ol { margin: 0 0 0.75rem; padding-inline-start: 1.5rem; }
+.rich-text ol { margin: 0.25rem 0 0.5rem; padding-inline-start: 1.5rem; }
 .rich-text ul { list-style: disc; }
 .rich-text ol { list-style: decimal; }
-.rich-text li { margin: 0.25rem 0; }
+.rich-text li { margin: 0.125rem 0; }
+.rich-text li::marker { color: rgb(var(--foreground-3)); }
 .rich-text a { color: rgb(var(--accent)); text-decoration: underline; }
 .rich-text img { max-width: 100%; height: auto; border-radius: 0.75rem; margin: 0.5rem 0; }
 .rich-text strong,
