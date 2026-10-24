@@ -135,6 +135,41 @@ const MAX_PEAK_CHROMA = 0.3;
 
 type Scale = Record<Shade, Rgb>;
 
+/** The scale slot whose canonical lightness is nearest the picked color's. */
+function detectSlot(base: Oklch): Shade {
+  return SHADES.reduce((best, s) =>
+    Math.abs(SHADE_L[s] - base.L) < Math.abs(SHADE_L[best] - base.L) ? s : best,
+  );
+}
+
+/**
+ * APCA (WCAG 3 draft) lightness contrast, |Lc| 0→~106. Used instead of the
+ * WCAG 2 ratio because WCAG 2 over-rates black on saturated mid-tones — it
+ * would put black text on a pure red (#ff0000) button, where white is what
+ * every designer (and APCA) picks.
+ */
+function apcaContrast(text: Rgb, bg: Rgb): number {
+  const Y = ([r, g, b]: Rgb) => {
+    const y = 0.2126729 * (r / 255) ** 2.4 + 0.7151522 * (g / 255) ** 2.4 + 0.072175 * (b / 255) ** 2.4;
+    return y < 0.022 ? y + (0.022 - y) ** 1.414 : y; // soft black clamp
+  };
+  const yt = Y(text), yb = Y(bg);
+  if (yb > yt) {
+    const s = (yb ** 0.56 - yt ** 0.57) * 1.14;
+    return s < 0.1 ? 0 : (s - 0.027) * 100;
+  }
+  const s = (yb ** 0.65 - yt ** 0.62) * 1.14;
+  return s > -0.1 ? 0 : -(s + 0.027) * 100;
+}
+
+const INK: Rgb = [17, 17, 19];
+const WHITE: Rgb = [255, 255, 255];
+
+/** Black or white label — whichever reads better on `bg`. */
+export function readableForeground(bg: Rgb): Rgb {
+  return apcaContrast(INK, bg) > apcaContrast(WHITE, bg) ? INK : WHITE;
+}
+
 /**
  * Build the full 50→950 accent scale from one base color, perceptually in
  * OKLCh. Strategy:
@@ -147,9 +182,7 @@ type Scale = Record<Shade, Rgb>;
  *      tenant's chosen color appears verbatim at its natural position.
  */
 function buildAccentScale(base: Oklch): Scale {
-  const detected = SHADES.reduce((best, s) =>
-    Math.abs(SHADE_L[s] - base.L) < Math.abs(SHADE_L[best] - base.L) ? s : best,
-  );
+  const detected = detectSlot(base);
   const peakChroma = Math.min(base.C / SHADE_C[detected], MAX_PEAK_CHROMA);
   const scale = {} as Scale;
   for (const s of SHADES) {
@@ -171,28 +204,30 @@ interface Ramp {
   gradient: string;
 }
 
-/** Slot→token mapping. Light mode uses deep mid-tones so buttons read clearly;
- *  dark mode shifts lighter so the accent lifts off a black page. */
-const TOKEN_SLOTS = {
-  light: { accent: 600, hover: 700, strong: 800, soft: 50, gradFrom: 600, gradTo: 800 },
-  dark: { accent: 500, hover: 400, strong: 300, soft: 900, gradFrom: 500, gradTo: 300 },
-} as const;
-
-/** Map a generated scale to the semantic accent tokens for one color mode. */
-function buildAccentRamp(scale: Scale, mode: "light" | "dark"): Ramp {
-  const m = TOKEN_SLOTS[mode];
-  const accent = scale[m.accent as Shade];
-  // Auto-contrast label against the accent slot: light accents → near-black.
-  const accentL = rgbToOklch(accent).L;
-  const foreground: Rgb = accentL > 0.62 ? [17, 17, 19] : [255, 255, 255];
+/**
+ * Map the scale to the semantic accent tokens for one color mode.
+ *
+ * `--accent` is the merchant's picked color VERBATIM in both modes — pick red,
+ * get red (no re-shading to a canonical slot). Hover/strong step away from the
+ * picked slot: darker in light mode, lighter in dark mode, flipping direction
+ * when the pick already sits at that end of the scale. The label color is
+ * black or white, whichever has more contrast on the picked color.
+ */
+function buildAccentRamp(scale: Scale, picked: Rgb, slot: Shade, mode: "light" | "dark"): Ramp {
+  const i = SHADES.indexOf(slot);
+  let dir = mode === "light" ? 1 : -1;
+  if (!SHADES[i + dir * 2]) dir = -dir;
+  const hover = scale[SHADES[i + dir]];
+  const strong = scale[SHADES[i + dir * 2]];
+  const soft = scale[mode === "light" ? 50 : 900];
   return {
     scaleVars: SHADES.map((s) => `--accent-${s}: ${channels(scale[s])};`),
-    accent: channels(accent),
-    accentForeground: channels(foreground),
-    accentSoft: channels(scale[m.soft as Shade]),
-    accentHover: channels(scale[m.hover as Shade]),
-    accentStrong: channels(scale[m.strong as Shade]),
-    gradient: `linear-gradient(135deg, rgb(${channels(scale[m.gradFrom as Shade])}), rgb(${channels(scale[m.gradTo as Shade])}))`,
+    accent: channels(picked),
+    accentForeground: channels(readableForeground(picked)),
+    accentSoft: channels(soft),
+    accentHover: channels(hover),
+    accentStrong: channels(strong),
+    gradient: `linear-gradient(135deg, rgb(${channels(picked)}), rgb(${channels(strong)}))`,
   };
 }
 
@@ -280,8 +315,9 @@ export function applyThemeSettings(settings?: Record<string, unknown>): void {
       `--accent-gradient: ${ramp.gradient};`,
     );
   };
-  emitTokens(light, buildAccentRamp(scale, "light"), true);
-  emitTokens(dark, buildAccentRamp(scale, "dark"), false);
+  const slot = detectSlot(base);
+  emitTokens(light, buildAccentRamp(scale, rgb, slot, "light"), true);
+  emitTokens(dark, buildAccentRamp(scale, rgb, slot, "dark"), false);
 
   // 3) Minimal pattern only: whisper-tint the neutral surfaces with the accent.
   if (safeGetPattern() === "minimal") {
