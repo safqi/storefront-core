@@ -67,20 +67,51 @@ export function useMarqueeRepeats<
     setRepeats(marqueeRepeats(available, one));
   }, []);
 
+  // Re-measure whenever the rendered text changes.
   useLayoutEffect(() => {
     measure();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [measure, ...deps]);
 
+  // (Re)attach the observer whenever the measured ELEMENTS change — checked on
+  // every commit, not keyed on `deps`. Callers render nothing on their first
+  // pass (the announcement bar starts hidden until it has read localStorage, a
+  // section bows out with no items), so on mount both refs are still null; a
+  // deps-keyed effect would then never run again once the bar appears, leaving
+  // it stuck at one copy per half — a short message set no longer covers the
+  // bar and the strip shows a blank run in every cycle.
+  const observerRef = useRef<ResizeObserver | null>(null);
+  const observedRef = useRef<{ viewport: V | null; unit: U | null }>({ viewport: null, unit: null });
+
+  useLayoutEffect(() => {
     const viewport = viewportRef.current;
+    const unit = unitRef.current;
+    const observed = observedRef.current;
+    if (viewport === observed.viewport && unit === observed.unit) return;
+
+    observedRef.current = { viewport, unit };
+    observerRef.current?.disconnect();
+    observerRef.current = null;
+    measure();
+
     if (!viewport || typeof ResizeObserver === "undefined") return;
 
     // Watch the viewport (bar resizes / orientation changes) AND the copy
     // itself, which changes width when a webfont finally swaps in.
     const observer = new ResizeObserver(() => measure());
     observer.observe(viewport);
-    if (unitRef.current) observer.observe(unitRef.current);
-    return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [measure, ...deps]);
+    if (unit) observer.observe(unit);
+    observerRef.current = observer;
+  });
+
+  useLayoutEffect(
+    () => () => {
+      observerRef.current?.disconnect();
+      observerRef.current = null;
+      observedRef.current = { viewport: null, unit: null };
+    },
+    [],
+  );
 
   return [repeats, viewportRef, unitRef];
 }
